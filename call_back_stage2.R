@@ -1,5 +1,5 @@
 output$pageStub <- renderUI(fluidPage(
- h1('Stage 2 - Mechanic Arrival'),
+ h1('Step 2 - Mechanic Arrival'),
  fluidRow(
   column(width = 5,
          splitLayout(

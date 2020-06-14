@@ -30,10 +30,10 @@ servicing.db$Component[servicing.db$Component == "NA"] <- "Other"
 servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
 
 servicing.db$LateCB <- 0
-servicing.db$LateCB[servicing.db$mechTime >30] <- 1
+servicing.db$LateCB[servicing.db$mechTime > 300] <- 1
 
-# client_id <- session$userData$ClientId
-client_id <- "0Cew6FkXsxFz1we0"
+client_id <- session$userData$ClientId
+# client_id <- "U2Wvx3apSPh6nzXs"
 buildings <- dbGetQuery(cn, paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
 
 servicing.db <- merge(
@@ -67,6 +67,10 @@ fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
 
 # UI ----
 output$pageStub <- renderUI(fluidPage(
+  tags$style(type="text/css",
+             ".shiny-output-error { visibility: hidden; }",
+             ".shiny-output-error:before { visibility: hidden; }"
+  ),
  if(loggedIn) {actionButton('logoutBtn','Logout', style= 
                              'position: fixed; right: 10px;top: 5px;')},
   title = 'BOCA',
@@ -131,7 +135,7 @@ output$Pmaint <- renderPlotly({
             name = 'Required Hours') %>%
     add_trace(y=~PM.PerfHrs, 
               mode = 'lines',
-              name = 'Performed Hours')%>%
+              name = 'Performed Hours') %>%
     layout(
      title = 'Preventative Maintenance',
      yaxis = list(title = 'Hours'),
@@ -190,30 +194,60 @@ output$servicing <- DT::renderDataTable(
 #Call Back Plots ---- 
  late_month <- reactive({
   if(input$Address== "All" & input$Month== "All") {
-   servicing.db %>%
+   temp <- servicing.db %>%
     group_by(month) %>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
+   temp[is.na(temp)] <-0
+   if(ncol(temp) <3) {
+     if("0" %in% names(temp)) temp$`1` <- 0
+     if("1" %in% names(temp)) temp$`0` <- 0
+   }
+   temp
   }
   else if (input$Address == "All") {
-   servicing.db %>%
+   temp <- servicing.db %>%
     group_by(month) %>%
+    # filter(month == 'Jan') %>%
     filter(month == input$Month)%>%
     count(LateCB) %>%
-    tidyr::spread(LateCB, n)}
-  else if (input$Month == "All") {
-   servicing.db %>%
+    tidyr::spread(LateCB, n)
+   temp[is.na(temp)] <-0
+   if(ncol(temp) <3) {
+     if("0" %in% names(temp)) temp$`1` <- 0
+     if("1" %in% names(temp)) temp$`0` <- 0
+   }
+   temp
+   }
+   else if (input$Month == "All") {
+   temp <- servicing.db %>%
     group_by(month) %>%
     filter(Address == input$Address)%>%
     count(LateCB) %>%
-    tidyr::spread(LateCB, n)}
+    tidyr::spread(LateCB, n)
+   
+    temp[is.na(temp)] <-0
+    if(ncol(temp) <3) {
+      if("0" %in% names(temp)) temp$`1` <- 0
+      if("1" %in% names(temp)) temp$`0` <- 0
+    }
+    temp}
   else {
-   servicing.db %>%
+   temp <- servicing.db %>%
     group_by(month) %>%
     filter(Address == input$Address,
            month == input$Month)%>%
     count(LateCB) %>%
-    tidyr::spread(LateCB, n)}
+    tidyr::spread(LateCB, n)
+   temp[is.na(temp)] <-0
+   if(ncol(temp) <3) {
+     if("0" %in% names(temp)) temp$`1` <- 0
+     if("1" %in% names(temp)) temp$`0` <- 0
+   }
+   temp
+   
+  }
+  
  })
  
  rComponents <-reactive({
@@ -250,8 +284,14 @@ output$servicing <- DT::renderDataTable(
  })
  
  output$Calls <- renderPlotly({
-  plot_ly(
-   data = late_month(),
+  temp <- late_month()
+  
+  validate(
+    need( nrow(temp) > 0, "Data insufficient for plot")
+  )
+  
+  temp %>% 
+    plot_ly(
    type = 'bar',
    x = ~month,
    y = ~`0`,
@@ -265,6 +305,7 @@ output$servicing <- DT::renderDataTable(
     barmode = 'stack',
     colorway = c('#00cc00','#FF0000')
    )
+ 
  })
 
 

@@ -1,13 +1,11 @@
 library(markdown)
 library(shiny)
 library(dplyr)
-library(dplyr)
 library(dbplyr)
 library(RMySQL)
 library(DBI)
-library(tidyquant)
 library(shinyalert)
-library(here)
+library(here) 
 library(shinythemes)
 
 #Global Variables ----
@@ -24,7 +22,7 @@ killDbConnections <- function () {
  all_cons <- dbListConnections(MySQL())
  
  for(con in all_cons)
-  +  dbDisconnect(con)
+ {try(dbDisconnect(con))}
  
 }
 
@@ -53,7 +51,6 @@ generate_id <- function() {
   newID <- paste(collapse = '', sample(x = c(letters, LETTERS, 0:9), size = 16, replace = TRUE))
   return(newID)
 }
-
 
 # style= 'position: relative; right: 10px;top: 5px;'
 #service call tracker ----
@@ -96,7 +93,9 @@ server <- function(input, output, session) {
  #  cat("Session started.\n")
  #  onSessionEnded(function() {cat("Session ended.\n\n\n")})
  # }
- onSessionEnded(function() {killDbConnections()})
+ onSessionEnded(function() {
+   # killDbConnections()
+   })
  ### Plain old functions that are used by multiple pages go above the server function, so they only load once.
  ###    Reactives used by multiple pages, however, have to be inside the server function and load every session.
  
@@ -187,7 +186,7 @@ server <- function(input, output, session) {
  if(p$name != ""){                                     # is that one of our files?
   webpage <- p                                       # note that this is a tibble
  }
- source(here(paste0(webpage$name, ".R")), local=T)        # load and run server code for this page
+ source(here::here(paste0(webpage$name, ".R")), local=T)        # load and run server code for this page
 } # end of server                                        #    in the server environment
 
 # Run the application

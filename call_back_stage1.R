@@ -22,13 +22,14 @@ users.dt <- dbGetQuery(cn,
                              "'", sep = ""))
 clientID <- unique(users.dt$ID_Client)
 locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(clientID),"'", sep = ""))
+phone_num <- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(clientID),"'", sep = ""))$Phone
 session$userData$ID_Service <- generate_id()
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
  fluidPage(
  fluidRow(
-  h1('Stage 1 - Mechanic Request'),
+  h1('Step 1 - Mechanic Request'),
   column(width = 5,
          selectInput('selAddress','Building',choices= locations$Address,tags$head(tags$style(
           HTML(".shiny-split-layout > div {overflow: visible;}")))))
@@ -50,11 +51,11 @@ output$pageStub <- renderUI(
   )
  )),
  div(class="header", checked=NA,
-     h5("Contract Number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+     h5("Contractor Number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
         font-size: 14px;
         line-height: 1.42857143;
         color: #333;'),
-     a(href="tel:18008675309", "1(800) 867-5309",style= 'font-size:20px;')
+     a(paste("tel:", phone_num), href=phone_num,style= 'font-size:20px;')
      ),
  br(),
  fluidRow(
@@ -157,7 +158,7 @@ observeEvent(input$submitMechRequest,{
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))
  
- source(here("call_back_stage2.R"), local=T)
+ source(here::here("call_back_stage2.R"), local=T)
 })
 
 observeEvent(input$btnCallBack, {

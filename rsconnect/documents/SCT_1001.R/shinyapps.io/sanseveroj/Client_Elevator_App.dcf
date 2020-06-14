@@ -5,9 +5,9 @@ account: sanseveroj
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1166988
-bundleId: 3236190
+bundleId: 3269145
 url: https://sanseveroj.shinyapps.io/Client_Elevator_App/
-when: 1591460753.23057
+when: 1592166674.23632
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|ElevatorData.xlsx|Provisional Patent - Draft Description JS 9132019.docx|Provisional Patent - Draft Description JS 9182019.docx
+ignoredFiles: ElevatorData.xlsx|Provisional Patent - Draft Description JS 9132019.docx|Provisional Patent - Draft Description JS 9182019.docx

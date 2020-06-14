@@ -20,7 +20,7 @@ users.dt <- dbGetQuery(cn,
              # session$userData$pass,
              'desk',
              "'", sep = ""))
-clientID <- unique(users.dt$ID_Client)
+clientID <- unique(users.dt$ID_Client) #removes dupes
 locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", clientID, "'", sep = ""))
 session$userData$ID_Service <- generate_id()
 
