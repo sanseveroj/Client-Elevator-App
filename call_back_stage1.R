@@ -25,6 +25,17 @@ locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WH
 phone_num <- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(clientID),"'", sep = ""))$Phone
 session$userData$ID_Service <- generate_id()
 
+# Client desc of Call back (dropdown) ####
+call_back_list <- 
+
+
+
+
+
+
+
+#### End List ####
+
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
  fluidPage(
@@ -40,10 +51,10 @@ output$pageStub <- renderUI(
   selectInput(
    "ClientDesc",
    label = "Reason for Call",
-   choices = list(
-    "Shutdown",
-    "Entrampment",
+   choices = c(
+    "Entrapment",
     "Noise",
+    "Shutdown",
     "Vibration",
     "Other"
    ),

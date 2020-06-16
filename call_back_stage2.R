@@ -1,3 +1,39 @@
+# Lists for Drop down ####
+comp_list <- c( 
+   "Doors",
+   "Drive Fault",
+   "Unknown",
+   "Software/Controller",
+   "Brake",
+   "Slack cable switch",
+   "Fascia",
+   "Fuse",
+   "Governor Cable",
+   "Hall Riser",
+   "Hydro oil cold",
+   "Relay",
+   "Safety switch",
+   "Communication",
+   "Emergency light",
+   "Hoistway",
+   "Load weighing",
+   "Machine",
+   "Power fault failure",
+   "Switch",
+   "Door saddle debris",
+   "FDNY",
+   "Water leak",
+   "Independent Service",
+   "Escalator - Step drive system",
+   "Escalator - Handrail system",
+   "Escalator - Balustrade",
+   "Escalator - Safety switches",
+   "Other"
+)
+comp_list <-sort(comp_list)
+#### End List ####
+
+
 output$pageStub <- renderUI(fluidPage(
  h1('Step 2 - Mechanic Arrival'),
  fluidRow(
@@ -170,8 +206,8 @@ output$pageStub <- renderUI(fluidPage(
  # # #Elevator unit/# (dropdown, populated from database)
  fluidRow(column(width = 5,
                  selectInput(
-                  "ElevatorUnit",
-                  label = "Elevator Unit",
+                  "DevDesig",
+                  label = "Device Designation",
                   choices = list(1, 2, 3, 4, 5),
                   selected = 1
                  ))),
@@ -179,37 +215,7 @@ output$pageStub <- renderUI(fluidPage(
  fluidRow(column(width=6,selectInput(
   "Component",
   label="Component Inspected by Mechanic",
-  choices = list(
-   "Doors",
-   "Drive Fault",
-   "Unknown",
-   "Software/Controller",
-   "Brake",
-   "Slack cable switch",
-   "Fascia",
-   "Fuse",
-   "Governor Cable",
-   "Hall Riser",
-   "Hydro oil cold",
-   "Relay",
-   "Safety switch",
-   "Communication",
-   "Emergency light",
-   "Hoistway",
-   "Load weighing",
-   "Machine",
-   "Power fault failure",
-   "Switch",
-   "Door saddle debris",
-   "FDNY",
-   "Water leak",
-   "Independent Service",
-   "Escalator - Step drive system",
-   "Escalator - Handrail system",
-   "Escalator - Balustrade",
-   "Escalator - Safety switches",
-   "Other"
-  ),
+  choices = comp_list,
   selected = 1
  ))),
  fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'))
