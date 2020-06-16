@@ -50,7 +50,7 @@ output$pageStub <- renderUI(
   width = 5,
   selectInput(
    "ClientDesc",
-   label = "Reason for Call",
+   label = "Reason for call",
    choices = c(
     "Entrapment",
     "Noise",
@@ -62,7 +62,7 @@ output$pageStub <- renderUI(
   )
  )),
  div(class="header", checked=NA,
-     h5("Contractor Number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+     h5("Contractor number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
         font-size: 14px;
         line-height: 1.42857143;
         color: #333;'),

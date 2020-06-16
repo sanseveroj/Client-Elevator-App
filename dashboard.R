@@ -64,7 +64,7 @@ fullService <-merge(
 )
 
 fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
-
+names(fullService)[1] <- "Month"
 # UI ----
 output$pageStub <- renderUI(fluidPage(
   tags$style(type="text/css",
@@ -108,19 +108,19 @@ output$pageStub <- renderUI(fluidPage(
 rServicing <- reactive({
  if(input$Address== "All" & input$Month== "All") {
   fullService %>%
-   group_by(month) %>%
+   group_by(Month) %>%
    summarise(PM.ReqHrs = sum(PM.ReqHrs, na.rm=T),
              PM.PerfHrs = sum(PM.PerfHrs, na.rm = T))
  }
   else if (input$Address == "All") {
-   fullService %>% filter(month == input$Month)
+   fullService %>% filter(Month == input$Month)
     }
   else if (input$Month == "All") {
    fullService %>% filter(Address == input$Address)
     }
   else {
    fullService %>%filter(Address == input$Address,
-                         month == input$Month)%>%
+                         Month == input$Month)%>%
     mutate(PM.MissHrs = PM.ReqHrs - PM.PerfHrs)
     }
  })
@@ -128,7 +128,7 @@ rServicing <- reactive({
 output$Pmaint <- renderPlotly({
   if(input$Address== "All" & input$Month== "All") {
    rServicing() %>%
-    plot_ly(x=~month, 
+    plot_ly(x=~Month, 
             y= ~PM.ReqHrs,
             type= 'scatter', 
             mode = 'lines',

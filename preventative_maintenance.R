@@ -37,7 +37,7 @@ fluidRow(
          splitLayout(
           selectInput(
            "mArrival2",
-           label='Mechanic Arrival',
+           label='Mechanic arrival',
            choices =
             #timelist                                ====
            list(
@@ -119,7 +119,7 @@ fluidRow(
                  splitLayout(
                   selectInput(
                    "mCheckout2",
-                   label = "Mechanic Departure",
+                   label = "Mechanic departure",
                    choices =
                     #timelist                                ====
                    list(

@@ -41,7 +41,7 @@ output$pageStub <- renderUI(fluidPage(
          splitLayout(
           selectInput(
            "mArrival",
-           label='Mechanic Arrival',
+           label='Mechanic arrival',
            choices =
             #timelist                                ====
            list(
@@ -123,7 +123,7 @@ output$pageStub <- renderUI(fluidPage(
                  splitLayout(
                   selectInput(
                    "mDepart",
-                   label = "Mechanic Departure",
+                   label = "Mechanic departure",
                    choices =
                     #timelist                                ====
                    list(
@@ -207,14 +207,14 @@ output$pageStub <- renderUI(fluidPage(
  fluidRow(column(width = 5,
                  selectInput(
                   "DevDesig",
-                  label = "Device Designation",
+                  label = "Device designation",
                   choices = list(1, 2, 3, 4, 5),
                   selected = 1
                  ))),
  # # #Mechanic Explanation of component associated w/ shutdown
  fluidRow(column(width=6,selectInput(
   "Component",
-  label="Component Inspected by Mechanic",
+  label="Component inspected by mechanic",
   choices = comp_list,
   selected = 1
  ))),
