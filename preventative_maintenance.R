@@ -14,11 +14,11 @@ cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host
 
 users.dt <- dbGetQuery(cn, 
        paste("SELECT * FROM users WHERE Username = '",
-             # session$userData$user,
-             'testdummy',
+             session$userData$user,
+             # 'testdummy',
              "' AND Password = '", 
-             # session$userData$pass,
-             'desk',
+             session$userData$pass,
+             # 'desk',
              "'", sep = ""))
 clientID <- unique(users.dt$ID_Client) #removes dupes
 locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", clientID, "'", sep = ""))
@@ -28,10 +28,10 @@ output$pageStub <- renderUI({
 useShinyalert()
 cat("Rendering Prev_Maint")
 fluidPage(h1('Preventative Maintenance'),
-fluidRow(
- column(width = 5,
-        selectInput('selAddress','Building',choices= locations$Address)),tags$head(tags$style(HTML("
-                   .shiny-split-layout > div {overflow: visible;}")))),
+# fluidRow(
+#  column(width = 5,
+#         selectInput('selAddress','Building',choices= locations$Address)),tags$head(tags$style(HTML("
+#                    .shiny-split-layout > div {overflow: visible;}")))),
  fluidRow(
   column(width = 5,
          splitLayout(
@@ -204,7 +204,7 @@ fluidRow(
 observeEvent(input$departBtn,{ 
             dataRow   <- data.frame(
               ID_Service    = session$userData$ID_Service,
-              ID_Building   = locations$ID_Building[locations$Address==input$selAddress],
+              ID_Building   = users.dt$ID_Building,
               ID_Client     = clientID,
               Type          = 0,
               Description   = 'PM',

@@ -14,37 +14,29 @@ cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host
 
 users.dt <- dbGetQuery(cn, 
                        paste("SELECT * FROM users WHERE Username = '",
-                             # session$userData$user,
-                             'testdummy',
+                             session$userData$user,
+                             # 'testdummy',
                              "' AND Password = '", 
-                             # session$userData$pass,
-                             'desk',
+                             session$userData$pass,
+                             # 'desk',
                              "'", sep = ""))
 clientID <- unique(users.dt$ID_Client)
 locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(clientID),"'", sep = ""))
 phone_num <- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(clientID),"'", sep = ""))$Phone
 session$userData$ID_Service <- generate_id()
-
-# Client desc of Call back (dropdown) ####
-call_back_list <- 
-
-
-
-
-
-
-
-#### End List ####
+ID_Building <- unique(users.dt$ID_Building)
+locations <- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", as.character(ID_Building),"'", sep = ""))
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
  fluidPage(
  fluidRow(
   h1('Step 1 - Mechanic Request'),
-  column(width = 5,
-         selectInput('selAddress','Building',choices= locations$Address,tags$head(tags$style(
-          HTML(".shiny-split-layout > div {overflow: visible;}")))))
-            ),
+  # column(width = 5,
+         # selectInput('selAddress','Building',choices= locations$Address,
+         #             tags$head(tags$style(
+         #  HTML(".shiny-split-layout > div {overflow: visible;}")))))
+         #    ),
  # # #Client desc of Call back (dropdown)
  fluidRow(column(
   width = 5,
@@ -153,11 +145,11 @@ output$pageStub <- renderUI(
                    .shiny-split-layout > div {overflow: visible;}")))),
  actionButton('submitMechRequest', 'Next')
  
-))
+)))
  
 observeEvent(input$submitMechRequest,{
  session$userData$ID_Service    <- generate_id()
- session$userData$ID_Building   <- locations$ID_Building[locations$Address==input$selAddress]
+ session$userData$ID_Building   <- users.dt$ID_Building
  session$userData$ID_Client     <- clientID
  session$userData$Type          <- 1
  session$userData$Description   <- "CB"
