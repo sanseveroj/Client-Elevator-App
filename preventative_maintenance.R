@@ -23,15 +23,19 @@ users.dt <- dbGetQuery(cn,
 clientID <- unique(users.dt$ID_Client) #removes dupes
 locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", clientID, "'", sep = ""))
 session$userData$ID_Service <- generate_id()
+ID_Building <- unique(users.dt$ID_Building)
+elevators <- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", as.character(ID_Building),"'", sep = ""))
 
 output$pageStub <- renderUI({
 useShinyalert()
 cat("Rendering Prev_Maint")
 fluidPage(h1('Preventative Maintenance'),
-# fluidRow(
-#  column(width = 5,
-#         selectInput('selAddress','Building',choices= locations$Address)),tags$head(tags$style(HTML("
-#                    .shiny-split-layout > div {overflow: visible;}")))),
+fluidRow(
+  column(width = 5,
+         selectInput('selDesignation','Dev_Des',choices= elevators$Dev_Des,
+                     tags$head(tags$style(
+                       HTML(".shiny-split-layout > div {overflow: visible;}")))))
+),
  fluidRow(
   column(width = 5,
          splitLayout(
@@ -215,7 +219,8 @@ observeEvent(input$departBtn,{
               Call_Returned = NA,
               Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
               Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
-              Date          = Sys.time())
+              Date          = Sys.time(),
+              Dev_Des       = input$selDesignation)
 
              tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
                       warning = function(w) {

@@ -25,18 +25,18 @@ locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WH
 phone_num <- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(clientID),"'", sep = ""))$Phone
 session$userData$ID_Service <- generate_id()
 ID_Building <- unique(users.dt$ID_Building)
-locations <- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", as.character(ID_Building),"'", sep = ""))
+elevators <- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", as.character(ID_Building),"'", sep = ""))
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
  fluidPage(
  fluidRow(
   h1('Step 1 - Mechanic Request'),
-  # column(width = 5,
-         # selectInput('selAddress','Building',choices= locations$Address,
-         #             tags$head(tags$style(
-         #  HTML(".shiny-split-layout > div {overflow: visible;}")))))
-         #    ),
+  column(width = 5,
+  selectInput('selDesignation','Dev_Des',choices= elevators$Dev_Des,
+              tags$head(tags$style(
+   HTML(".shiny-split-layout > div {overflow: visible;}")))))
+     ),
  # # #Client desc of Call back (dropdown)
  fluidRow(column(
   width = 5,
@@ -145,7 +145,7 @@ output$pageStub <- renderUI(
                    .shiny-split-layout > div {overflow: visible;}")))),
  actionButton('submitMechRequest', 'Next')
  
-)))
+))
  
 observeEvent(input$submitMechRequest,{
  session$userData$ID_Service    <- generate_id()
@@ -156,7 +156,7 @@ observeEvent(input$submitMechRequest,{
  session$userData$Caller        <- users.dt$ID_User
  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
  session$userData$Call_Reason   <- input$ClientDesc
- 
+ session$userData$Dev_Des       <- input$selDesignation
  
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))

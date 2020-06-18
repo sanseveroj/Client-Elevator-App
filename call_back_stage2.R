@@ -204,13 +204,13 @@ output$pageStub <- renderUI(fluidPage(
                       .shiny-split-layout > div {overflow: visible;}")))
  ),
  # # #Elevator unit/# (dropdown, populated from database)
- fluidRow(column(width = 5,
-                 selectInput(
-                  "DevDesig",
-                  label = "Device designation",
-                  choices = list(1, 2, 3, 4, 5),
-                  selected = 1
-                 ))),
+ # fluidRow(column(width = 5,
+ #                 selectInput(
+ #                  "DevDesig",
+ #                  label = "Device designation",
+ #                  choices = list(1, 2, 3, 4, 5),
+ #                  selected = 1
+ #                 ))),
  # # #Mechanic Explanation of component associated w/ shutdown
  fluidRow(column(width=6,selectInput(
   "Component",
@@ -245,7 +245,9 @@ observeEvent(input$departBtn,{
   Call_Returned = NA,
   Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
   Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
-  Date          = Sys.time())
+  Date          = Sys.time(),
+  Dev_Des       = session$userData$Dev_Des
+  )
  
  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
           warning = function(w) {
