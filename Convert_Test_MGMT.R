@@ -1,7 +1,6 @@
 library(tidyverse)
 library(readxl)
-library(stringr)
-
+library(dplyr)
 client <- read_excel("MockData.xlsx", sheet = 1)
 buildings <- read_excel("MockData.xlsx", sheet = 2)
 users <- read_excel("MockData.xlsx", sheet = 3)
@@ -39,5 +38,30 @@ my_clients <- my_clients %>% select(ID_Client, Client, Phone, Contact)
 
 client <- rbind.data.frame(client, my_clients)
 
-#Get new [NEXT TABLE] ####
+#Get new Buildings ####
+my_buildings <- TestMgmt %>%
+filter(str_detect(`Client Name`,"AVALON")) %>%
+group_by(`Street Address`) %>%
+select(`Street Address`, `DeviceCount`) %>%
+mutate(ID_Building = generate_id()) %>%
+mutate(ID_Client = generate_id()) %>%
+mutate(PM.ReqHrs = sample(10:40, size = 1, replace = TRUE))
+unique() %>%
+  slice(1) %>%
+  ungroup()
 
+my_buildings <- rbind.data.frame(my_buildings, cbind.data.frame(
+                                              `Street Address` = 'Master Address',
+                                              `DeviceCount` = 'Master',
+                                              `PM.ReqHrs` = 0,
+                                              ID_Building = generate_id(),
+                                              ID_Client = generate_id()
+))
+
+
+names(my_buildings) <- c('Address', 'Elevators', 'ID_Building', 'ID_Client', 'PM.ReqHrs')
+my_buildings <- my_buildings %>% select(ID_Building, ID_Client, Address, Elevators, PM.ReqHrs)
+
+buildings <- rbind.data.frame(buildings, my_buildings)
+
+  
