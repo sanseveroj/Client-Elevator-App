@@ -62,4 +62,21 @@ my_buildings <- my_buildings %>% select(ID_Building, ID_Client, Address, Elevato
 
 buildings <- rbind.data.frame(buildings, my_buildings)
 
+#Get new Elevators ####
+my_elevators <- TestMgmt %>%
+filter(str_detect(`Client Name`,"AVALON")) %>%
+select(`Building Car Number`, `Client Name`) %>%
+separate(`Client Name`, into = c('Client Name', 'Region'), sep = "-") %>%
+select(-`Client Name`) %>% 
+group_by(`Region`) %>%
+  unique() %>%
+  slice(1) %>%
+mutate(ID_Client = generate_id()) %>%
+mutate(ID_Building = generate_id()) %>% 
+  ungroup() 
+
+names(my_elevators)
+names(my_elevators) <- c('Dev_Des', 'Region', 'ID_Client', 'ID_Building')
+my_elevators <- my_elevators %>% select(ID_Building, ID_Client, Dev_Des, Region)
   
+elevators <- rbind.data.frame(elevators, my_elevators)
