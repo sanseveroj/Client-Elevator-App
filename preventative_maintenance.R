@@ -202,7 +202,7 @@ fluidRow(
                        margin-top: 5px;}"))
                  )),tags$head(tags$style(HTML("
                       .shiny-split-layout > div {overflow: visible;}")))
- ),actionButton('departBtn', 'Submit')
+ ),actionButton('departBtn', 'Submit'), actionButton('saveBtn', 'Save')
          )})
 
 observeEvent(input$departBtn,{ 

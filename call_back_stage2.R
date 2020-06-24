@@ -218,7 +218,7 @@ output$pageStub <- renderUI(fluidPage(
   choices = comp_list,
   selected = 1
  ))),
- fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'))
+ fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save'))
 ))
 
 observeEvent(input$departBtn,{ 

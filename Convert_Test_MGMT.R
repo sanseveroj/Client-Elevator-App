@@ -62,6 +62,31 @@ my_buildings <- my_buildings %>% select(ID_Building, ID_Client, Address, Elevato
 
 buildings <- rbind.data.frame(buildings, my_buildings)
 
+#Get new users ####
+my_rows <- seq(1, length.out = nrow(my_buildings), by = 1)
+my_funk <- function(x){
+  return(paste("testdummy", x, sep = ""))
+  
+}
+my_users <- unlist(lapply(my_rows, my_funk))
+my_pass <- "password"
+my_security <- "0"
+my_ID_Client <- my_clients$ID_Client
+my_ID_Building <- my_buildings$ID_Building
+
+my_ID_User <- c()
+for (i in my_rows) {my_ID_User <- c(my_ID_User, generate_id())
+  
+}
+
+
+cbind.data.frame(
+  ID_User = my_ID_User, 
+  ID_Client = my_ID_Client, 
+  Username = my_users, 
+  Password = my_pass, 
+  Security = my_security, 
+  ID_Building = my_ID_Building)
 #Get new Elevators ####
 my_elevators <- TestMgmt %>%
 filter(str_detect(`Client Name`,"AVALON")) %>%

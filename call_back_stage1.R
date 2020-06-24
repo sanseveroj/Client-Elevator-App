@@ -143,8 +143,8 @@ output$pageStub <- renderUI(
                        margin-top: 5px;}"))
          )),tags$head(tags$style(HTML("
                    .shiny-split-layout > div {overflow: visible;}")))),
- actionButton('submitMechRequest', 'Next')
- 
+ actionButton('submitMechRequest', 'Next'),
+ actionButton('saveMechRequest', 'Save')
 ))
  
 observeEvent(input$submitMechRequest,{
@@ -160,8 +160,31 @@ observeEvent(input$submitMechRequest,{
  
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))
- 
+
  source(here::here("call_back_stage2.R"), local=T)
+})
+
+observeEvent(input$saveMechRequest,{
+  session$userData$ID_Service    <- generate_id()
+  session$userData$ID_Building   <- users.dt$ID_Building
+  session$userData$ID_Client     <- clientID
+  session$userData$Type          <- 1
+  session$userData$Description   <- "CB"
+  session$userData$Caller        <- users.dt$ID_User
+  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
+  session$userData$Call_Reason   <- input$ClientDesc
+  session$userData$Dev_Des       <- input$selDesignation
+  session$userData$saveMechRequest   <-   
+  
+  cat(paste(input$CallBack,
+           session$userData$Call_Return_Time))
+ 
+   session$userData$user <<- NA
+  session$userData$pass <<- NA
+  # killDbConnections()
+  js$redirect("?login")
+  
+  source(here::here("call_back_stage2.R"), local=T)
 })
 
 observeEvent(input$btnCallBack, {
