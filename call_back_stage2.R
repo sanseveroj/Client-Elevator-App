@@ -246,7 +246,8 @@ observeEvent(input$departBtn,{
   Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
   Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
   Date          = Sys.time(),
-  Dev_Des       = session$userData$Dev_Des
+  Dev_Des       = session$userData$Dev_Des,
+  Incomplete    = 0
   )
  
  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
@@ -277,6 +278,65 @@ observeEvent(input$departBtn,{
              js$redirect("?login")
             })
 })
+
+observeEvent(input$saveBtn,{ 
+   # cat(paste(session$userData$ID_Service,
+   # session$userData$ID_Building,
+   # session$userData$ID_Client,
+   # session$userData$Caller,
+   # input$Component,
+   # session$userData$Call_Reason,
+   # session$userData$Call_Placed,
+   # lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
+   # lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
+   
+   dataRow   <- data.frame(
+      ID_Service    = session$userData$ID_Service,
+      ID_Building   = session$userData$ID_Building,
+      ID_Client     = session$userData$ID_Client,
+      Type          = 1,
+      Description   = 'CB',
+      Caller        = session$userData$Caller,
+      Component     = input$Component,
+      Call_Reason   = session$userData$Call_Reason,
+      Call_Placed   = session$userData$Call_Placed,
+      Call_Returned = NA,
+      Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
+      Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
+      Date          = Sys.time(),
+      Dev_Des       = session$userData$Dev_Des,
+      Incomplete    = 1
+   )
+   
+   tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+            warning = function(w) {
+               killDbConnections()
+               cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+               dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+               cat('write warning table reconnected')
+            },
+            error = function(e) {
+               killDbConnections()
+               cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+               dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+               cat('write error table reconnected')
+            })
+   
+   # cat('alert incoming')
+   
+   shinyalert(title = "Save Successful!",
+              text = 'Return to login',
+              type = 'success',
+              closeOnClickOutside = T,
+              callbackR = function(){
+                 if(length(dbListConnections(MySQL()))>10){
+                    killDbConnections()
+                    cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+                 }
+                 js$redirect("?login")
+              })
+})
+   
 observeEvent(input$nowArrival1, {
  currTime <-   format(x = lubridate::round_date(Sys.time(), '15 minutes'),
                       format = '%I:%M %p')

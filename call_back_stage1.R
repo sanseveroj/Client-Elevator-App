@@ -12,20 +12,6 @@ password <- "Joe5933547"
 my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
 cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
 
-users.dt <- dbGetQuery(cn, 
-                       paste("SELECT * FROM users WHERE Username = '",
-                             session$userData$user,
-                             # 'testdummy',
-                             "' AND Password = '", 
-                             session$userData$pass,
-                             # 'desk',
-                             "'", sep = ""))
-clientID <- unique(users.dt$ID_Client)
-locations <- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(clientID),"'", sep = ""))
-phone_num <- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(clientID),"'", sep = ""))$Phone
-session$userData$ID_Service <- generate_id()
-ID_Building <- unique(users.dt$ID_Building)
-elevators <- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", as.character(ID_Building),"'", sep = ""))
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
@@ -33,7 +19,7 @@ output$pageStub <- renderUI(
  fluidRow(
   h1('Step 1 - Mechanic Request'),
   column(width = 5,
-  selectInput('selDesignation','Dev_Des',choices= elevators$Dev_Des,
+  selectInput('selDesignation','Dev_Des',choices= session$userData$elevators$Dev_Des,
               tags$head(tags$style(
    HTML(".shiny-split-layout > div {overflow: visible;}")))))
      ),
@@ -58,7 +44,7 @@ output$pageStub <- renderUI(
         font-size: 14px;
         line-height: 1.42857143;
         color: #333;'),
-     a(paste("tel:", phone_num), href=phone_num,style= 'font-size:20px;')
+     a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num,style= 'font-size:20px;')
      ),
  br(),
  fluidRow(
@@ -149,11 +135,11 @@ output$pageStub <- renderUI(
  
 observeEvent(input$submitMechRequest,{
  session$userData$ID_Service    <- generate_id()
- session$userData$ID_Building   <- users.dt$ID_Building
- session$userData$ID_Client     <- clientID
+ session$userData$ID_Building   <- session$userData$users.dt$ID_Building
+ session$userData$ID_Client     <- session$userData$clientID
  session$userData$Type          <- 1
  session$userData$Description   <- "CB"
- session$userData$Caller        <- users.dt$ID_User
+ session$userData$Caller        <- session$userData$users.dt$ID_User
  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
  session$userData$Call_Reason   <- input$ClientDesc
  session$userData$Dev_Des       <- input$selDesignation
@@ -165,26 +151,51 @@ observeEvent(input$submitMechRequest,{
 })
 
 observeEvent(input$saveMechRequest,{
-  session$userData$ID_Service    <- generate_id()
-  session$userData$ID_Building   <- users.dt$ID_Building
-  session$userData$ID_Client     <- clientID
-  session$userData$Type          <- 1
-  session$userData$Description   <- "CB"
-  session$userData$Caller        <- users.dt$ID_User
-  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
-  session$userData$Call_Reason   <- input$ClientDesc
-  session$userData$Dev_Des       <- input$selDesignation
-  session$userData$saveMechRequest   <-   
+  dataRow   <- data.frame(
+    ID_Service    = generate_id(),
+    ID_Building   = session$userData$users.dt$ID_Building,
+    ID_Client     = session$userData$clientID,
+    Type          = 1,
+    Description   = 'CB',
+    Caller        = session$userData$users.dt$ID_User,
+    Component     = NA,
+    Call_Reason   = input$ClientDesc,
+    Call_Placed   = lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-")),
+    Call_Returned = NA,
+    Arrival       = NA,
+    Departure     = NA,
+    Date          = Sys.time(),
+    Dev_Des       = input$selDesignation,
+    Incomplete    = 1
+  )
   
-  cat(paste(input$CallBack,
-           session$userData$Call_Return_Time))
- 
-   session$userData$user <<- NA
-  session$userData$pass <<- NA
-  # killDbConnections()
-  js$redirect("?login")
+  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+           warning = function(w) {
+             killDbConnections()
+             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+             cat('write warning table reconnected')
+           },
+           error = function(e) {
+             killDbConnections()
+             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+             cat('write error table reconnected')
+           })
   
-  source(here::here("call_back_stage2.R"), local=T)
+  # cat('alert incoming')
+  
+  shinyalert(title = "Save Successful!",
+             text = 'Return to login',
+             type = 'success',
+             closeOnClickOutside = T,
+             callbackR = function(){
+               if(length(dbListConnections(MySQL()))>10){
+                 killDbConnections()
+                 cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+               }
+               js$redirect("?login")
+             })
 })
 
 observeEvent(input$btnCallBack, {
