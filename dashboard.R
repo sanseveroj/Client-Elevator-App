@@ -23,8 +23,8 @@ servicing.db$Call_Placed <- lubridate::ymd_hms(servicing.db$Call_Placed)
 servicing.db$Call_Returned <- lubridate::ymd_hms(servicing.db$Call_Returned)
 
 servicing.db <- servicing.db %>% 
- mutate(month = lubridate::month(Date, abbr=T, label= T),
-        mechTime = difftime(Arrival, Call_Placed, units = 'mins'))
+  mutate(month = lubridate::month(Date, abbr=T, label= T),
+         mechTime = difftime(Arrival, Call_Placed, units = 'mins'))
 servicing.db$Component[servicing.db$Component == ""] <- "Other"
 servicing.db$Component[servicing.db$Component == "NA"] <- "Other"
 servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
@@ -33,38 +33,24 @@ servicing.db$LateCB <- 0
 servicing.db$LateCB[servicing.db$mechTime > 300] <- 1
 
 client_id <- session$userData$ClientId
-# client_id <- "U2Wvx3apSPh6nzXs"
+# client_id <- "oQ0CaHqIq1LiGcMR"
+# monthList <- data.frame(month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
+#                                            abbr=T, label=T))
 buildings <- dbGetQuery(cn, paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
-
+# buildings <- base::merge(buildings, monthList)
+# print(buildings)
 servicing.db <- merge(
- x= servicing.db,
- y= buildings[,c('ID_Building','Address', 'PM.ReqHrs')],
- by= 'ID_Building'
+  x= servicing.db,
+  y= buildings,
+  by= c('ID_Building')
 )
 servicing.db$MechDur <- round(difftime(servicing.db$Departure,servicing.db$Arrival,units='hours'),1)
 
-monthList <- list(month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
-                              abbr=T, label=T))
-fullService <-merge(
- x = merge(
-  x = monthList,
-  y= servicing.db %>% 
-   group_by(month, Address)%>%
-   filter(Type == 0) %>%
-   summarise(PM.PerfHrs = sum(MechDur)),
-  by = 'month',
-  all.x = T
- ),
- y = merge(
-  x=monthList,
-  y=buildings
- ),
- by = c('month','Address'),
- all.y = T
-)
-
+fullService <- servicing.db
+names(fullService)[ncol(fullService)] <- 'PM.PerfHrs'
 fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
-names(fullService)[1] <- "Month"
+names(fullService)[2] <- "Month"
+
 # UI ----
 output$pageStub <- renderUI(fluidPage(
   tags$style(type="text/css",
@@ -86,17 +72,21 @@ output$pageStub <- renderUI(fluidPage(
              br(),
      fluidRow(
       box(width = 12,
-          plotlyOutput('Pmaint'),
-          DT::dataTableOutput('servicing')
+          plotlyOutput('Pmaint')
          )
-      )
+      ),
+     fluidRow(
+       box(width = 12,
+           DT::dataTableOutput('servicing')
+                  )
+     )
     ),
     
     tabPanel('Call Back',
              br(),
-            try(box(width = 6,plotlyOutput("Calls"))),
-            box(width = 6,plotlyOutput("Components"),solidHeader = T,
-                tags$style(type='text/css', "#Components {margin-top: 25px;}"))
+            try(fluidRow(box(width = 6,plotlyOutput("Calls")))),
+            fluidRow(box(width = 6,plotlyOutput("Components"),solidHeader = T,
+                tags$style(type='text/css', "#Components {margin-top: 25px;}")))
            )
    )
   )
@@ -188,7 +178,7 @@ output$Pmaint <- renderPlotly({
 
 #Preventative Maintenance Table ----
 output$servicing <- DT::renderDataTable(
- DT::datatable(rServicing(), options = list(pageLength = 25))
+ DT::datatable(rServicing(), options = list(pageLength = 25), buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
 )
  
 #Call Back Plots ---- 

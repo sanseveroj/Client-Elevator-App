@@ -1,17 +1,24 @@
+# # #Database Variables
+# library(dplyr)
+# library(dbplyr)
 # #Database Variables
-library(dplyr)
-library(dbplyr)
-#Database Variables
-host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
-port <- 3306
-dbname <- "BOCA_2"
-user <- "JoeSans"
-password <- "Joe5933547"
+# host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
+# port <- 3306
+# dbname <- "BOCA_2"
+# user <- "JoeSans"
+# password <- "Joe5933547"
+# 
+# # killDbConnections()
+# my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
+# cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
 
-# killDbConnections()
-my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
-cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+if (nrow(session$userData$servicing.dt) > 0){
+  cat("inside if")
+  selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
+  
+}else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]}
 
+if (nrow(session$userData$servicing.dt) > 0) {selected_call_reason <- session$userData$servicing.dt$Call_Reason[1]} else selected_call_reason
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),
@@ -19,9 +26,10 @@ output$pageStub <- renderUI(
  fluidRow(
   h1('Step 1 - Mechanic Request'),
   column(width = 5,
-  selectInput('selDesignation','Dev_Des',choices= session$userData$elevators$Dev_Des,
-              tags$head(tags$style(
-   HTML(".shiny-split-layout > div {overflow: visible;}")))))
+  selectInput('selDesignation','Dev_Des',
+              choices= session$userData$elevators$Dev_Des,
+              selected = selected_Dev_Des
+             ))
      ),
  # # #Client desc of Call back (dropdown)
  fluidRow(column(
@@ -36,15 +44,19 @@ output$pageStub <- renderUI(
     "Vibration",
     "Other"
    ),
-   selected = "Shutdown"
+   selected = selected_call_reason
   )
  )),
  div(class="header", checked=NA,
      h5("Contractor number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
         font-size: 14px;
         line-height: 1.42857143;
-        color: #333;'),
-     a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num,style= 'font-size:20px;')
+        color: #333;'), 
+     # h5(paste("tel:", session$userData$phone_num))
+     a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num, style= 'font-size:20px;')
+     # a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num,style= 'font-size:20px;')
+     
+          # paste(session$userData$Client$Phone)
      ),
  br(),
  fluidRow(
@@ -133,7 +145,7 @@ output$pageStub <- renderUI(
  actionButton('saveMechRequest', 'Save')
 ))
  
-observeEvent(input$submitMechRequest,{
+observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$ID_Service    <- generate_id()
  session$userData$ID_Building   <- session$userData$users.dt$ID_Building
  session$userData$ID_Client     <- session$userData$clientID
@@ -147,7 +159,7 @@ observeEvent(input$submitMechRequest,{
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))
 
- source(here::here("call_back_stage2.R"), local=T)
+ source(here::here("call_back_stage2.R"), local=environment())
 })
 
 observeEvent(input$saveMechRequest,{

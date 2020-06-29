@@ -2,16 +2,23 @@
 library(dplyr)
 library(dbplyr)
 #Database Variables
+print(nrow(session$userData$users.dt))
+if (nrow(session$userData$servicing.dt) > 0){
+  cat("inside if")
+selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
 
+}else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]}
+print(selected_Dev_Des)
+selected_Dev_Des <- as.character(selected_Dev_Des)
 output$pageStub <- renderUI({
 useShinyalert()
 cat("Rendering Prev_Maint")
 fluidPage(h1('Preventative Maintenance'),
 fluidRow(
   column(width = 5,
-         selectInput('selDesignation','Dev_Des',choices= session$userData$elevators$Dev_Des,
-                     tags$head(tags$style(
-                       HTML(".shiny-split-layout > div {overflow: visible;}")))))
+         selectInput('selDesignation','Dev_Des',
+                     choices= session$userData$elevators$Dev_Des,
+                     selected = selected_Dev_Des))
 ),
  fluidRow(
   column(width = 5,

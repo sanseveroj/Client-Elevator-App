@@ -186,7 +186,7 @@ server <- function(input, output, session) {
  if(p$name != ""){                                     # is that one of our files?
   webpage <- p                                       # note that this is a tibble
  }
- source(here::here(paste0(webpage$name, ".R")), local=T)        # load and run server code for this page
+ source(here::here(paste0(webpage$name, ".R")), local=environment())        # load and run server code for this page
 } # end of server                                        #    in the server environment
 
 # Run the application

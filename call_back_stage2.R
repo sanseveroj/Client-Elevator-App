@@ -34,6 +34,10 @@ comp_list <-sort(comp_list)
 #### End List ####
 
 
+
+
+if (nrow(session$userData$servicing.dt) > 0) { selected_comp_reason <- session$userData$servicing.dt$Component[1]} else 1
+
 output$pageStub <- renderUI(fluidPage(
  h1('Step 2 - Mechanic Arrival'),
  fluidRow(
@@ -216,7 +220,8 @@ output$pageStub <- renderUI(fluidPage(
   "Component",
   label="Component inspected by mechanic",
   choices = comp_list,
-  selected = 1
+ 
+  selected = selected_comp_reason
  ))),
  fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save'))
 ))
@@ -347,6 +352,8 @@ observeEvent(input$nowDeparture2, {
                       format = '%I:%M %p')
  updateSelectInput(session, 'mDepart', selected = as.character(currTime))
  })
-observeEvent(input$prevBtn, {
- js$redirect("?call_back_stage1")
+observeEvent(input$prevBtn, ignoreInit = T, {
+   
+   (source(here::here("call_back_stage1.R"),local=environment())[1])
+   # js$redirect("?call_back_stage1")
 })
