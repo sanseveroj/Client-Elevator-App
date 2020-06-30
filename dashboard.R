@@ -30,27 +30,43 @@ servicing.db$Component[servicing.db$Component == "NA"] <- "Other"
 servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
 
 servicing.db$LateCB <- 0
-servicing.db$LateCB[servicing.db$mechTime > 300] <- 1
+servicing.db$LateCB[servicing.db$mechTime >30] <- 1
 
-client_id <- session$userData$ClientId
-# client_id <- "oQ0CaHqIq1LiGcMR"
-# monthList <- data.frame(month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
-#                                            abbr=T, label=T))
+# client_id <- session$userData$ClientId
+client_id <- "oQ0CaHqIq1LiGcMR"
 buildings <- dbGetQuery(cn, paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
-# buildings <- base::merge(buildings, monthList)
-# print(buildings)
+
 servicing.db <- merge(
   x= servicing.db,
-  y= buildings,
-  by= c('ID_Building')
+  y= buildings[,c('ID_Building','Address', 'PM.ReqHrs')],
+  by= 'ID_Building'
 )
 servicing.db$MechDur <- round(difftime(servicing.db$Departure,servicing.db$Arrival,units='hours'),1)
 
-fullService <- servicing.db
-names(fullService)[ncol(fullService)] <- 'PM.PerfHrs'
-fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
-names(fullService)[2] <- "Month"
+monthList <- data.frame(month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
+                                                 abbr=T, label=T))
+fullService <-merge(
+  x = merge(
+    x = monthList,
+    y= servicing.db %>% 
+      group_by(month, Address)%>%
+      filter(Type == 0) %>%
+      summarise(PM.PerfHrs = sum(MechDur)),
+    by = 'month',
+    all.x = T
+  ),
+  y = merge(
+    x=monthList,
+    y=buildings
+  ),
+  by = c('month','Address'),
+  all.y = T
+)
 
+fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
+fullService <- fullService %>% ungroup()
+names(fullService)[1] <- "Month"
+names(servicing.db)[16] <- "Month"
 # UI ----
 output$pageStub <- renderUI(fluidPage(
   tags$style(type="text/css",
@@ -142,7 +158,7 @@ output$Pmaint <- renderPlotly({
     add_trace(x= ~PM.PerfHrs, 
               name = 'Recorded Hours'
               ) %>%
-    layout(title = ~month,
+    layout(title = ~Month,
            yaxis = list(title = 'Hours'),
            xaxis = list(title = 'Address'),
            barmode = 'overlay',
@@ -150,7 +166,7 @@ output$Pmaint <- renderPlotly({
           )
    }else if (input$Month == "All") {
     rServicing() %>%
-     plot_ly(x=~month, 
+     plot_ly(x=~Month, 
              y= ~PM.ReqHrs,
              type= 'scatter', 
              mode = 'lines',
@@ -178,14 +194,14 @@ output$Pmaint <- renderPlotly({
 
 #Preventative Maintenance Table ----
 output$servicing <- DT::renderDataTable(
- DT::datatable(rServicing(), options = list(pageLength = 25), buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
+ DT::datatable(rServicing(), options = list(pageLength = 25, buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
 )
  
 #Call Back Plots ---- 
  late_month <- reactive({
   if(input$Address== "All" & input$Month== "All") {
    temp <- servicing.db %>%
-    group_by(month) %>%
+    group_by(Month) %>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    temp[is.na(temp)] <-0
@@ -197,9 +213,9 @@ output$servicing <- DT::renderDataTable(
   }
   else if (input$Address == "All") {
    temp <- servicing.db %>%
-    group_by(month) %>%
-    # filter(month == 'Jan') %>%
-    filter(month == input$Month)%>%
+    group_by(Month) %>%
+    filter(Month == 'Jan') %>%
+    # filter(Month == input$Month)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    temp[is.na(temp)] <-0
@@ -211,7 +227,7 @@ output$servicing <- DT::renderDataTable(
    }
    else if (input$Month == "All") {
    temp <- servicing.db %>%
-    group_by(month) %>%
+    group_by(Month) %>%
     filter(Address == input$Address)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
@@ -224,9 +240,9 @@ output$servicing <- DT::renderDataTable(
     temp}
   else {
    temp <- servicing.db %>%
-    group_by(month) %>%
+    group_by(Month) %>%
     filter(Address == input$Address,
-           month == input$Month)%>%
+           Month == input$Month)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    temp[is.na(temp)] <-0
@@ -248,8 +264,8 @@ output$servicing <- DT::renderDataTable(
   }
   else if (input$Address == "All") {
    components <- servicing.db %>%
-   group_by(month,Component) %>%
-   filter(month == input$Month)%>%
+   group_by(Month,Component) %>%
+   filter(Month == input$Month)%>%
    summarise(compCount = n())}
   else if (input$Month == "All") {
    components <- servicing.db %>%
@@ -258,9 +274,9 @@ output$servicing <- DT::renderDataTable(
     summarise(compCount = n())}
   else {
    components <- servicing.db %>%
-    group_by(month,Address,Component) %>%
+    group_by(Month,Address,Component) %>%
     filter(Address == input$Address,
-           month == input$Month)%>%
+           Month == input$Month)%>%
     summarise(compCount = n())}
  })
  
@@ -283,7 +299,7 @@ output$servicing <- DT::renderDataTable(
   temp %>% 
     plot_ly(
    type = 'bar',
-   x = ~month,
+   x = ~Month,
    y = ~`0`,
    name = 'On-Time' 
   ) %>%
