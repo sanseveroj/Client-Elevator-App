@@ -36,7 +36,8 @@ observeEvent(input$login_btn,{
                                                  session$userData$pass,
                                                  # 'desk',
                                                  "'", sep = ""))
-  session$userData$clientID <<- unique(session$userData$users.dt$ID_Client)
+
+  session$userData$clientID <<- session$userData$users.dt$ID_Client
   session$userData$locations <<- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))
   session$userData$phone_num <<- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))$Phone
   # cat(session$userData$phone_num)

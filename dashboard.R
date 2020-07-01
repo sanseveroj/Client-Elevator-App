@@ -23,6 +23,11 @@ servicing.db$Call_Placed <- lubridate::ymd_hms(servicing.db$Call_Placed)
 servicing.db$Call_Returned <- lubridate::ymd_hms(servicing.db$Call_Returned)
 
 servicing.db <- servicing.db %>% 
+  mutate(Call_Placed = lubridate::as_datetime(Call_Placed), 
+         Call_Returned = lubridate::as_datetime(Call_Returned),
+         Arrival = lubridate::as_datetime(Arrival),
+         Departure = lubridate::as_datetime(Departure),
+         Date = lubridate::as_date(Date)) %>%
   mutate(month = lubridate::month(Date, abbr=T, label= T),
          mechTime = difftime(Arrival, Call_Placed, units = 'mins'))
 servicing.db$Component[servicing.db$Component == ""] <- "Other"
@@ -32,8 +37,9 @@ servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
 servicing.db$LateCB <- 0
 servicing.db$LateCB[servicing.db$mechTime >30] <- 1
 
-# client_id <- session$userData$ClientId
-client_id <- "oQ0CaHqIq1LiGcMR"
+client_id <- session$userData$clientID
+print(client_id)
+# client_id <- "OmKcuNXfR7iOziUe"
 buildings <- dbGetQuery(cn, paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
 
 servicing.db <- merge(
@@ -73,6 +79,19 @@ output$pageStub <- renderUI(fluidPage(
              ".shiny-output-error { visibility: hidden; }",
              ".shiny-output-error:before { visibility: hidden; }"
   ),
+  tags$head(tags$script('
+                        var dimension = [0, 0];
+                        $(document).on("shiny:connected", function(e) {
+                        dimension[0] = window.innerWidth;
+                        dimension[1] = window.innerHeight;
+                        Shiny.onInputChange("dimension", dimension);
+                        });
+                        $(window).resize(function(e) {
+                        dimension[0] = window.innerWidth;
+                        dimension[1] = window.innerHeight;
+                        Shiny.onInputChange("dimension", dimension);
+                        });
+                        ')),
  if(loggedIn) {actionButton('logoutBtn','Logout', style= 
                              'position: fixed; right: 10px;top: 5px;')},
   title = 'BOCA',
@@ -131,10 +150,13 @@ rServicing <- reactive({
     }
  })
 
-output$Pmaint <- renderPlotly({
+observeEvent(input$dimension,{
+  output$Pmaint <- renderPlotly({
   if(input$Address== "All" & input$Month== "All") {
    rServicing() %>%
-    plot_ly(x=~Month, 
+    plot_ly(width = 0.50*as.numeric(input$dimension[1]), 
+            height = 0.30*as.numeric(input$dimension[2]),
+            x=~Month, 
             y= ~PM.ReqHrs,
             type= 'scatter', 
             mode = 'lines',
@@ -151,6 +173,8 @@ output$Pmaint <- renderPlotly({
    } else if (input$Address == "All") {
     rServicing() %>%
      plot_ly(type = 'bar',
+             width = (0.50*as.numeric(input$dimension[1])),
+             height = 0.30*as.numeric(input$dimension[2]),
              y = ~Address,
              x = ~PM.ReqHrs,
              name = 'Required Hours' 
@@ -166,7 +190,9 @@ output$Pmaint <- renderPlotly({
           )
    }else if (input$Month == "All") {
     rServicing() %>%
-     plot_ly(x=~Month, 
+     plot_ly(width = (0.50*as.numeric(input$dimension[1])),
+             height = 0.30*as.numeric(input$dimension[2]),
+            x=~Month, 
              y= ~PM.ReqHrs,
              type= 'scatter', 
              mode = 'lines',
@@ -182,16 +208,19 @@ output$Pmaint <- renderPlotly({
    }
   else {
    rServicing() %>%
-   plot_ly(labels = c('Recorded Hours', 'Required Hours'),values = c(~PM.PerfHrs, ~PM.MissHrs)) %>%
-    add_pie(hole = 0.6) %>%
+   plot_ly(width = (0.32*as.numeric(input$dimension[1])), 
+           height = 0.32*as.numeric(input$dimension[2]),
+     labels = c('Recorded Hours', 'Required Hours'),values = c(~PM.PerfHrs, ~PM.MissHrs)) %>%
+    add_pie(hole = 0.5) %>%
     layout(title =~Address,  showlegend = T,
            # xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
            # yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)),
           colorway = c('#FF0000','#00cc00'))
-     }
+  }
+  
    
  })
-
+})
 #Preventative Maintenance Table ----
 output$servicing <- DT::renderDataTable(
  DT::datatable(rServicing(), options = list(pageLength = 25, buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
