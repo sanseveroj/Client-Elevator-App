@@ -116,11 +116,11 @@ output$pageStub <- renderUI(fluidPage(
              br(),
             try(fluidRow(box(width = 6,plotlyOutput("Calls")))),
             fluidRow(box(width = 6,plotlyOutput("Components"),solidHeader = T,
-                tags$style(type='text/css', "#Components {margin-top: 25px;}")), 
-                box(width = 6, offset = 3, plotlyOutput("Entrapments"), 
-                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;}")
+                tags$style(type='text/css', "#Components {margin-top: 25px;}")) 
+                # box(width = 6, offset = 3, plotlyOutput("Entrapments"), 
+                #      tags$style(type='text/css', "#Entrapments {margin-top: 25px;}")
                   
-                ))
+                )
             
            )
    )
@@ -346,29 +346,29 @@ output$servicing <- DT::renderDataTable(
     barmode = 'stack',
     colorway = c('#00cc00','#FF0000')
    )
- output$Entrapments <- renderPlotly({
-   
-   
-  validate(
-    need( nrow(temp) > 0, "Data insufficient for plot")
-     ) 
-   plotly(
-     type = 'bar',
-     width = 0.8*as.numeric(input$dimension[1]), 
-     height = 0.45*as.numeric(input$dimension[2]),
-     x = ~Month,
-     y= ~`0`,
-     name = 'Entrapments'
-   ) %>%
-     add_trace(y= ~`1`, name = 'Shutdowns') %>%
-     layout(
-       title = 'Shutdowns vs Entrapments',
-       yaxis = list(title = 'Calls'),
-       xaxis = list(title = 'Month'),
-       barmode = 'stack',
-       colorway = c('#00cc00','#FF0000')
-       )
- })
+ # output$Entrapments <- renderPlotly({
+ #   
+ #   
+ #  validate(
+ #    need( nrow(temp) > 0, "Data insufficient for plot")
+ #     ) 
+ #   plotly(
+ #     type = 'bar',
+ #     width = 0.8*as.numeric(input$dimension[1]), 
+ #     height = 0.45*as.numeric(input$dimension[2]),
+ #     x = ~Month,
+ #     y= ~`0`,
+ #     name = 'Entrapments'
+ #   ) %>%
+ #     add_trace(y= ~`1`, name = 'Shutdowns') %>%
+ #     layout(
+ #       title = 'Shutdowns vs Entrapments',
+ #       yaxis = list(title = 'Calls'),
+ #       xaxis = list(title = 'Month'),
+ #       barmode = 'stack',
+ #       colorway = c('#00cc00','#FF0000')
+ #       )
+ # })
  })
 
 # Load data into temp by running servicing.db run 232-241 to get temp.
