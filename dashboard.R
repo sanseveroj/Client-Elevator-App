@@ -19,10 +19,10 @@ cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host
 servicing.db <- dbGetQuery(cn, "SELECT * FROM servicing")
 
 #Formatting Date strings
-servicing.db <- servicing.db  %>% mutate(Call_Placed = hms::as_hms(Call_Placed), 
-                                         Call_Returned = hms::as_hms(Call_Returned),
-                                         Arrival = hms::as_hms(Arrival),
-                                         Departure = hms::as_hms(Departure)) %>% 
+servicing.db <- servicing.db  %>% mutate(Call_Placed = lubridate::as_datetime(Call_Placed), 
+                                         Call_Returned = lubridate::as_datetime(Call_Returned),
+                                         Arrival = lubridate::as_datetime(Arrival),
+                                         Departure = lubridate::as_datetime(Departure)) %>% 
  mutate(month = lubridate::month(lubridate::as_date(Date), abbr=T, label= T),
          mechTime = difftime(Arrival, Call_Placed, units = 'mins'))
 servicing.db$Component[servicing.db$Component == ""] <- "Other"
@@ -31,6 +31,9 @@ servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
 
 servicing.db$LateCB <- 0
 servicing.db$LateCB[servicing.db$mechTime >200] <- 1
+
+servicing.db$Entrapments <- 0
+servicing.db$Entrapments[servicing.db$Call_Reason == "Entrapment"] <- 1
 
 client_id <- session$userData$clientID
 print(client_id)
@@ -114,15 +117,15 @@ output$pageStub <- renderUI(fluidPage(
     
     tabPanel('Call Back',
              br(),
-            try(fluidRow(box(width = 6,plotlyOutput("Calls")))),
-            fluidRow(box(width = 6,plotlyOutput("Components"),solidHeader = T,
-                tags$style(type='text/css', "#Components {margin-top: 25px;}")) 
-                # box(width = 6, offset = 3, plotlyOutput("Entrapments"), 
-                #      tags$style(type='text/css', "#Entrapments {margin-top: 25px;}")
+            fluidRow(box(width = 6,plotlyOutput("Calls"))),
+            fluidRow(column(width = 6, plotlyOutput("Components"),
+                tags$style(type='text/css', "#Components {margin-top: 25px;}")), 
+                column(width =  6, offset = 10, plotlyOutput("Entrapments")),
+                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 50px;}")))
                   
-                )
+                
             
-           )
+           
    )
   )
  )
@@ -309,12 +312,52 @@ output$servicing <- DT::renderDataTable(
     summarise(compCount = n())}
  })
  
+ rEntrapments <-reactive({
+   if(input$Address== "All" & input$Month== "All") {
+     entrapments <- servicing.db %>% 
+       dplyr::select(Month, Entrapments) %>%
+     group_by(Month) %>%
+       summarise(Entrapments = sum(Entrapments), 
+                 serviceCount = n()
+                 ) %>%
+       mutate(nonEntrapment = serviceCount - Entrapments)
+     # temp <- servicing.db %>%
+     #   dplyr::select(Month, Entrapments) %>%
+     # group_by(Month) %>%
+     #   summarise(Entrapments = sum(Entrapments),
+     #             serviceCount = n()) %>%
+     #   mutate(nonEntrapment = serviceCount - Entrapments)
+     } 
+   else if (input$Address == "All") {
+     entrapments <- servicing.db %>% 
+       dplyr::select(Month, Entrapments) %>%
+       filter(Month == input$Month)%>%
+       group_by(Month) %>%
+       summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
+     mutate(nonEntrapment = serviceCount - Entrapments)} 
+   else if (input$Month == "All") {
+     entrapments <- servicing.db %>%
+     dplyr::select(Address, Entrapments) %>%
+     filter(Address == input$Address)%>%
+     group_by(Address) %>%
+     summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
+       mutate(nonEntrapment = serviceCount - Entrapments)}
+
+   else {
+     entrapments <- servicing.db %>%
+     dplyr::select(Month, Address, Entrapments) %>%
+     filter(Month == input$Month, Address == input$Address)%>%
+       group_by(Month, Address) %>%
+       summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
+       mutate(nonEntrapment = serviceCount - Entrapments)}
+ })
+ 
  output$Components <- renderPlotly({
   plot_ly(
    data = rComponents(),
    type = 'pie',
    hole = 0.5,
-   width = 0.8*as.numeric(input$dimension[1]), 
+   width = 0.35*as.numeric(input$dimension[1]), 
    height = 0.45*as.numeric(input$dimension[2]),
    labels = ~Component,
    textinfo = "none",
@@ -333,7 +376,7 @@ output$servicing <- DT::renderDataTable(
     plot_ly(
    type = 'bar',
    width = 0.8*as.numeric(input$dimension[1]), 
-   height = 0.45*as.numeric(input$dimension[2]),
+   height = 0.35*as.numeric(input$dimension[2]),
   x = ~Month,
    y = ~`0`,
    name = 'On-Time' 
@@ -346,30 +389,33 @@ output$servicing <- DT::renderDataTable(
     barmode = 'stack',
     colorway = c('#00cc00','#FF0000')
    )
- # output$Entrapments <- renderPlotly({
- #   
- #   
- #  validate(
- #    need( nrow(temp) > 0, "Data insufficient for plot")
- #     ) 
- #   plotly(
- #     type = 'bar',
- #     width = 0.8*as.numeric(input$dimension[1]), 
- #     height = 0.45*as.numeric(input$dimension[2]),
- #     x = ~Month,
- #     y= ~`0`,
- #     name = 'Entrapments'
- #   ) %>%
- #     add_trace(y= ~`1`, name = 'Shutdowns') %>%
- #     layout(
- #       title = 'Shutdowns vs Entrapments',
- #       yaxis = list(title = 'Calls'),
- #       xaxis = list(title = 'Month'),
- #       barmode = 'stack',
- #       colorway = c('#00cc00','#FF0000')
- #       )
- # })
  })
+ output$Entrapments <- renderPlotly({
+  temp <- rEntrapments()
+
+  validate(
+    need( nrow(temp) > 0, "Data insufficient for plot")
+     )
+  temp %>%
+   plot_ly(
+     type = 'bar',
+     width = 0.35*as.numeric(input$dimension[1]),
+     height = 0.45*as.numeric(input$dimension[2]),
+     x = ~Month,
+     y= ~Entrapments,
+     name = 'Entrapments'
+   ) %>%
+  add_bars(y = ~nonEntrapment, name = 'Other Shutdowns', x = ~Month) %>%
+     layout(
+       title = 'Shutdowns vs Entrapments',
+       yaxis = list(title = 'Shutdowns'),
+       xaxis = list(title = 'Month'),
+       barmode = 'stack',
+       colorway = c('#00cc00','#FF0000'),
+       showlegend = FALSE
+       )
+ })
+ 
 
 # Load data into temp by running servicing.db run 232-241 to get temp.
 
