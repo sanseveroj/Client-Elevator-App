@@ -223,6 +223,12 @@ output$pageStub <- renderUI(fluidPage(
  
   selected = selected_comp_reason
  ))),
+   conditionalPanel(
+      condition = "input.Component == 'Other'",
+      textInput()
+   ),
+ 
+ 
  fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save'))
 ))
 
@@ -341,6 +347,24 @@ observeEvent(input$saveBtn,{
                  js$redirect("?login")
               })
 })
+
+# observeEvent(input$otherComp,{ 
+#    dataRow   <- data.frame(
+#       ID_Service    = session$userData$ID_Service,
+#       ID_Building   = session$userData$users.dt$ID_Building,
+#       ID_Client     = session$userData$clientID,
+#       Type          = 0,
+#       Description   = 'PM',
+#       Caller        = session$userData$users.dt$ID_User,
+#       Component     = NA,
+#       Call_Reason   = NA,
+#       Call_Placed   = NA,
+#       Call_Returned = NA,
+#       Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
+#       Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
+#       Date          = Sys.time(),
+#       Dev_Des       = input$selDesignation,
+#       Incomplete    = 1)
    
 observeEvent(input$nowArrival1, {
  currTime <-   format(x = lubridate::round_date(Sys.time(), '15 minutes'),

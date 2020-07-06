@@ -1,3 +1,5 @@
+library(shinyWidgets)
+
 # Database Variables
 host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
 port <- 3306
@@ -20,9 +22,10 @@ output$pageStub <- renderUI({
   textInput("username", label = "Username"),
   passwordInput("password", label = "Password"),
   actionButton("login_btn",label="Login")
- ))
-)
-})
+ )))
+
+ # , setBackgroundImage(src = "https://www.fillmurray.com/1920/1080"), shinydashboard = T)
+ })
 
 
 observeEvent(input$login_btn,{

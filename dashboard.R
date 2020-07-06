@@ -30,7 +30,7 @@ servicing.db$Component[servicing.db$Component == "NA"] <- "Other"
 servicing.db$Component[is.na(servicing.db$Component)] <- "Other"
 
 servicing.db$LateCB <- 0
-servicing.db$LateCB[servicing.db$mechTime >200] <- 1
+servicing.db$LateCB[servicing.db$mechTime >150] <- 1
 
 servicing.db$Entrapments <- 0
 servicing.db$Entrapments[servicing.db$Call_Reason == "Entrapment"] <- 1
@@ -117,11 +117,11 @@ output$pageStub <- renderUI(fluidPage(
     
     tabPanel('Call Back',
              br(),
-            fluidRow(box(width = 6,plotlyOutput("Calls"))),
-            fluidRow(column(width = 6, plotlyOutput("Components"),
-                tags$style(type='text/css', "#Components {margin-top: 25px;}")), 
-                column(width =  6, offset = 10, plotlyOutput("Entrapments")),
-                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 50px;}")))
+            flowLayout(box(width = 6,plotlyOutput("Calls"))),
+            flowLayout(column(width = 6, plotlyOutput("Components"),
+                tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -65px;}")), 
+                column(width = 6, offset = 12, plotlyOutput("Entrapments")),
+                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 75px;}")))
                   
                 
             
@@ -356,7 +356,7 @@ output$servicing <- DT::renderDataTable(
   plot_ly(
    data = rComponents(),
    type = 'pie',
-   hole = 0.5,
+   hole = 0.35,
    width = 0.35*as.numeric(input$dimension[1]), 
    height = 0.45*as.numeric(input$dimension[2]),
    labels = ~Component,
@@ -399,7 +399,7 @@ output$servicing <- DT::renderDataTable(
   temp %>%
    plot_ly(
      type = 'bar',
-     width = 0.35*as.numeric(input$dimension[1]),
+     width = 0.40*as.numeric(input$dimension[1]),
      height = 0.45*as.numeric(input$dimension[2]),
      x = ~Month,
      y= ~Entrapments,
