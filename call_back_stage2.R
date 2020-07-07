@@ -221,12 +221,14 @@ output$pageStub <- renderUI(fluidPage(
   label="Component inspected by mechanic",
   choices = comp_list,
  
-  selected = selected_comp_reason
+  selected = selected_comp_reason,
+  
+  conditionalPanel(
+     condition = "input.selected == 'Other'",
+     textInput("otherComp","Other Comp", width = '100px')
+  )
  ))),
-   conditionalPanel(
-      condition = "input.Component == 'Other'",
-      textInput()
-   ),
+
  
  
  fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save'))
@@ -348,15 +350,15 @@ observeEvent(input$saveBtn,{
               })
 })
 
-# observeEvent(input$otherComp,{ 
+# observeEvent(input$otherComp,{
 #    dataRow   <- data.frame(
 #       ID_Service    = session$userData$ID_Service,
 #       ID_Building   = session$userData$users.dt$ID_Building,
 #       ID_Client     = session$userData$clientID,
 #       Type          = 0,
-#       Description   = 'PM',
+#       Description   = 'CB',
 #       Caller        = session$userData$users.dt$ID_User,
-#       Component     = NA,
+#       Component     = "otherComp",
 #       Call_Reason   = NA,
 #       Call_Placed   = NA,
 #       Call_Returned = NA,
@@ -364,7 +366,8 @@ observeEvent(input$saveBtn,{
 #       Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
 #       Date          = Sys.time(),
 #       Dev_Des       = input$selDesignation,
-#       Incomplete    = 1)
+#       Incomplete    = 0)
+# })
    
 observeEvent(input$nowArrival1, {
  currTime <-   format(x = lubridate::round_date(Sys.time(), '15 minutes'),

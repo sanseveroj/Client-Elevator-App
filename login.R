@@ -16,15 +16,36 @@ output$pageStub <- renderUI({
  x = rv$limn
  cat(paste0("Rendering ", webpage$name, " v.", rv$limn, "\n"))
  fluidPage(
- fluidRow(column(
-  width = 4, offset=4,
+ verticalLayout(tags$img(src = "Login-BOCATrack Graphics-TOP.png", width = "100%", height = "100%"),
+                tags$br(),
+                tags$br(), tags$br(),
+                tags$br(),
+  column(
+  width = 4, offset=5,
   h3("Login"),
   textInput("username", label = "Username"),
   passwordInput("password", label = "Password"),
-  actionButton("login_btn",label="Login")
- )))
-
- # , setBackgroundImage(src = "https://www.fillmurray.com/1920/1080"), shinydashboard = T)
+  actionButton("login_btn",label="Login"),
+  tags$br(),
+  tags$br(),
+  tags$br(),
+  
+  tags$img(
+  src = "BOCALogo Graphic.png",
+  align = "center", 
+  height = "65%",
+  width = "450")),
+ tags$br(),
+ tags$br(),
+ tags$br(),
+ tags$br(),tags$br(),
+ tags$br(),
+ tags$br(),
+ tags$br(),
+ tags$img(src = "Login-BOCATrack Graphics-BOT.png", width = "100%", height = "110", align = "center")
+ 
+ ))
+ 
  })
 
 
@@ -50,6 +71,7 @@ observeEvent(input$login_btn,{
   # print(session$userData$ID_Building)
   session$userData$elevators <<- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", 
                                                       as.character(session$userData$ID_Building),"'", sep = ""))
+
   
   session$userData$servicing.dt <<-dbGetQuery(cn, 
                                               paste("SELECT * FROM servicing WHERE ID_Building = '",
@@ -61,14 +83,15 @@ observeEvent(input$login_btn,{
                                                     # 'desk',
                                                     "' AND Incomplete = 1", sep = ""))[1,]
   # print(session$userData$elevators)
+  # print(session$userData$servicing.dt)
 
              if (nrow(session$userData$users.dt) == 1){loggedIn <- T
               if (session$userData$users.dt$Security ==1) {
                cat('Rendering Dashboard')
                source(here::here('dashboard.R'),local=T)}
               else if (nrow(session$userData$servicing.dt) > 0)
-              {print(session$userData$servicing.dt)
-                if (session$userData$servicing.dt$Type[1] == 1)
+              {(session$userData$servicing.dt)
+                if (nrow(session$userData$servicing.dt) > 0)
                   {source(here::here("call_back_stage1.R"),local=T)}else
                     {source(here::here("preventative_maintenance.R"),local=T)}
                 }else
