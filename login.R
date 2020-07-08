@@ -84,12 +84,13 @@ observeEvent(input$login_btn,{
                                                     "' AND Incomplete = 1", sep = ""))[1,]
   print(session$userData$elevators)
   print(session$userData$servicing.dt)
+  print(nrow(session$userData$servicing.dt))
 
              if (nrow(session$userData$users.dt) == 1){loggedIn <- T
               if (session$userData$users.dt$Security ==1) {
                cat('Rendering Dashboard')
                source(here::here('dashboard.R'),local=T)}
-              else if (nrow(session$userData$servicing.dt) > 0)
+              else if (!is.na(session$userData$servicing.dt$ID_Service[1]))
               {
                 if (session$userData$servicing.dt$Type == 1)
                   {source(here::here("call_back_stage1.R"),local=T)}

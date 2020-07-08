@@ -6,7 +6,6 @@ library(shinydashboard)
 library(dbplyr)
 library(RMySQL)
 library(DBI)
-library(tidyquant)
 host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
 port <- 3306
 dbname <- "BOCA_2"
@@ -70,7 +69,8 @@ fullService <-merge(
 fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
 fullService <- fullService %>% ungroup()
 names(fullService)[1] <- "Month"
-names(servicing.db)[16] <- "Month"
+names(servicing.db)[which(names(servicing.db)=='month')] <- "Month"
+
 # UI ----
 output$pageStub <- renderUI(fluidPage(
   tags$style(type="text/css",
@@ -157,6 +157,7 @@ observeEvent(input$dimension,{
   output$Pmaint <- renderPlotly({
   if(input$Address== "All" & input$Month== "All") {
    rServicing() %>%
+    # temp %>% 
     plot_ly(width = 0.60*as.numeric(input$dimension[1]), 
             height = 0.37*as.numeric(input$dimension[2]),
             x=~Month, 
@@ -226,16 +227,35 @@ observeEvent(input$dimension,{
 })
 #Preventative Maintenance Table ----
 output$servicing <- DT::renderDataTable(
- DT::datatable(rServicing(), options = list(pageLength = 25, buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
+ DT::datatable(rServicing(),
+               selection = 'single',
+               filter = 'bottom',
+               extensions = c('Buttons', 'ColReorder', 'FixedHeader', 'Scroller'),
+               rownames = F,
+               options = list(
+                 pageLength = 25,
+                 dom = 'Bfrtip',
+                 searching = T,
+                 colReorder = T,
+                 fixedHeader = T,
+                 filter = 'top',
+                 paging = T,
+                 deferRender = T,
+                 scroller = T,
+                 searchHighlight = T,
+                 scrollX = T,
+                 scrollY = T,
+                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')))
 )
  
 #Call Back Plots ---- 
  late_month <- reactive({
   if(input$Address== "All" & input$Month== "All") {
-   temp <- servicing.db %>%
-    group_by(Month) %>%
+   temp <- servicing.db %>% 
+    group_by(Month) %>% 
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
+   
    temp[is.na(temp)] <-0
    if(ncol(temp) <3) {
      if("0" %in% names(temp)) temp$`1` <- 0
