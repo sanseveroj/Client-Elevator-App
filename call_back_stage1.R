@@ -45,8 +45,11 @@ output$pageStub <- renderUI(
     "Other"
    ),
    selected = selected_call_reason
-  )
- )),
+  ),
+  conditionalPanel(
+    condition = "input.ClientDesc == 'Other'",
+    textInput("OtherCR","Other Call Reason", width = '180px')
+ ))),
  div(class="header", checked=NA,
      h5("Contractor number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
         font-size: 14px;
@@ -155,7 +158,7 @@ observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
  session$userData$Call_Reason   <- input$ClientDesc
  session$userData$Dev_Des       <- input$selDesignation
- 
+ session$userData$OtherCR       <- if (input$OtherCR != ""){input$OtherCR} else {NA}
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))
 
@@ -178,7 +181,9 @@ observeEvent(input$saveMechRequest,{
     Departure     = NA,
     Date          = Sys.time(),
     Dev_Des       = input$selDesignation,
-    Incomplete    = 1
+    Incomplete    = 1,
+    OtherCR       = input$OtherCR,
+    OtherComp     = NA
   )
   
   tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},

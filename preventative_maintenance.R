@@ -205,7 +205,12 @@ observeEvent(input$departBtn,{
               Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
               Date          = Sys.time(),
               Dev_Des       = input$selDesignation,
-              Incomplete    = 0)
+              Incomplete    = 0,
+              OtherCR       = NA,
+              OtherComp     = NA
+            )
+              
+            
 
              tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
                       warning = function(w) {
@@ -252,7 +257,10 @@ observeEvent(input$saveBtn,{
     Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
     Date          = Sys.time(),
     Dev_Des       = input$selDesignation,
-    Incomplete    = 1)
+    Incomplete    = 1,
+    OtherCR       = NA,
+    OtherComp     = NA
+  )
   
   tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
            warning = function(w) {

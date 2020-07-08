@@ -82,17 +82,18 @@ observeEvent(input$login_btn,{
                                                     ,
                                                     # 'desk',
                                                     "' AND Incomplete = 1", sep = ""))[1,]
-  # print(session$userData$elevators)
-  # print(session$userData$servicing.dt)
+  print(session$userData$elevators)
+  print(session$userData$servicing.dt)
 
              if (nrow(session$userData$users.dt) == 1){loggedIn <- T
               if (session$userData$users.dt$Security ==1) {
                cat('Rendering Dashboard')
                source(here::here('dashboard.R'),local=T)}
               else if (nrow(session$userData$servicing.dt) > 0)
-              {(session$userData$servicing.dt)
-                if (nrow(session$userData$servicing.dt) > 0)
-                  {source(here::here("call_back_stage1.R"),local=T)}else
+              {
+                if (session$userData$servicing.dt$Type == 1)
+                  {source(here::here("call_back_stage1.R"),local=T)}
+                  else
                     {source(here::here("preventative_maintenance.R"),local=T)}
                 }else
                       {source(here::here("type_choice.R"), local=T)}

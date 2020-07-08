@@ -223,10 +223,11 @@ output$pageStub <- renderUI(fluidPage(
  
   selected = selected_comp_reason,
   
+
+  ),
   conditionalPanel(
-     condition = "input.selected == 'Other'",
-     textInput("otherComp","Other Comp", width = '100px')
-  )
+     condition = "input.Component == 'Other'",
+     textInput("otherComp","Other Comp", width = '180px')
  ))),
 
  
@@ -244,7 +245,10 @@ observeEvent(input$departBtn,{
  # session$userData$Call_Placed,
  # lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
  # lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
+ print(session$userData$OtherCR)
+ print(input$otherComp)
  
+
  dataRow   <- data.frame(
   ID_Service    = session$userData$ID_Service,
   ID_Building   = session$userData$ID_Building,
@@ -260,7 +264,9 @@ observeEvent(input$departBtn,{
   Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
   Date          = Sys.time(),
   Dev_Des       = session$userData$Dev_Des,
-  Incomplete    = 0
+  Incomplete    = 0,
+  OtherCR       = session$userData$OtherCR,
+  OtherComp     = input$otherComp
   )
  
  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
@@ -318,7 +324,9 @@ observeEvent(input$saveBtn,{
       Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
       Date          = Sys.time(),
       Dev_Des       = session$userData$Dev_Des,
-      Incomplete    = 1
+      Incomplete    = 1,
+      OtherCR       = sesssion$userData$OtherCR,
+      OtherComp     = input$OtherComp
    )
    
    tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
@@ -350,24 +358,7 @@ observeEvent(input$saveBtn,{
               })
 })
 
-# observeEvent(input$otherComp,{
-#    dataRow   <- data.frame(
-#       ID_Service    = session$userData$ID_Service,
-#       ID_Building   = session$userData$users.dt$ID_Building,
-#       ID_Client     = session$userData$clientID,
-#       Type          = 0,
-#       Description   = 'CB',
-#       Caller        = session$userData$users.dt$ID_User,
-#       Component     = "otherComp",
-#       Call_Reason   = NA,
-#       Call_Placed   = NA,
-#       Call_Returned = NA,
-#       Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
-#       Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
-#       Date          = Sys.time(),
-#       Dev_Des       = input$selDesignation,
-#       Incomplete    = 0)
-# })
+
    
 observeEvent(input$nowArrival1, {
  currTime <-   format(x = lubridate::round_date(Sys.time(), '15 minutes'),
