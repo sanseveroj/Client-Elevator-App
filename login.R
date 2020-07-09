@@ -77,10 +77,6 @@ observeEvent(input$login_btn,{
                                               paste("SELECT * FROM servicing WHERE ID_Building = '",
                                                     session$userData$ID_Building,
                                                     # 'testdummy',
-                                                    "' AND Date >= '", 
-                                                    lubridate::as_date(Sys.Date()) - 7
-                                                    ,
-                                                    # 'desk',
                                                     "' AND Incomplete = 1", sep = ""))[1,]
   print(session$userData$elevators)
   print(session$userData$servicing.dt)

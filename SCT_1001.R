@@ -7,6 +7,7 @@ library(DBI)
 library(shinyalert)
 library(here) 
 library(shinythemes)
+library(lubridate)
 
 #Global Variables ----
 site_pages <- tibble(name="login",sp=0)     # in terms of pages, it's the amount of user sp
