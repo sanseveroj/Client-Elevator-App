@@ -269,17 +269,17 @@ observeEvent(input$departBtn,{
   OtherComp     = input$otherComp
   )
  
- tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+ tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
           warning = function(w) {
            killDbConnections()
            cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-           dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+           dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)
            cat('write warning table reconnected')
           },
           error = function(e) {
            killDbConnections()
            cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-           dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
+           dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)
            cat('write error table reconnected')
           })
  
@@ -329,7 +329,7 @@ observeEvent(input$saveBtn,{
       OtherComp     = input$OtherComp
    )
    
-   tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+   tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
             warning = function(w) {
                killDbConnections()
                cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)

@@ -8,6 +8,7 @@ library(shinyalert)
 library(here) 
 library(shinythemes)
 library(lubridate)
+library(BBmisc)
 
 #Global Variables ----
 site_pages <- tibble(name="login",sp=0)     # in terms of pages, it's the amount of user sp
@@ -26,17 +27,19 @@ killDbConnections <- function () {
  {try(dbDisconnect(con))}
  
 }
+connect_to_db <- function(){
+  killDbConnections()
+  host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
+  port <- 3306
+  dbname <- "BOCA_2"
+  user <- "JoeSans"
+  password <- "Joe5933547"
+  
+  # killDbConnections()
+  cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
+  return(cn)
+  }
 
-#Database Variables
-host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
-port <- 3306
-dbname <- "BOCA_2"
-user <- "JoeSans"
-password <- "Joe5933547"
-
-# killDbConnections()
-my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
-cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
 idList <- list()
 Sys.setenv(TZ='America/New_York')
 #Global Functions ----
@@ -176,18 +179,19 @@ server <- function(input, output, session) {
  ### End of common reactives, now load the reactives for the page specified in the URL
  #     Note, this cannot be inside a reactive, because it ends by loading source code, which needs to be
  #        in the environment of the server, not inside an observer/reactive
- 
- webpage <- isolate(session$clientData$url_search)     # isolate() to deal with reactive context
- if(is.null(webpage)) {                                # report if session$ wasn't ready yet...
-  webpage <- "?login"                                 #    ...null means issues to solve
-  }
- if(webpage=="") { webpage <- "?login" }                # blank means home page
- webpage <- substr(webpage, 2, nchar(webpage))         # remove leading "?", add ".R"
- p <- pageGet(webpage)
- if(p$name != ""){                                     # is that one of our files?
-  webpage <- p                                       # note that this is a tibble
- }
- source(here::here(paste0(webpage$name, ".R")), local=environment())        # load and run server code for this page
+ # 
+ # webpage <- isolate(session$clientData$url_search)     # isolate() to deal with reactive context
+ # if(is.null(webpage)) {                                # report if session$ wasn't ready yet...
+ #  webpage <- "?login"                                 #    ...null means issues to solve
+ #  }
+ # if(webpage=="") { webpage <- "?login" }                # blank means home page
+ # webpage <- substr(webpage, 2, nchar(webpage))         # remove leading "?", add ".R"
+ # p <- pageGet(webpage)
+ # if(p$name != ""){                                     # is that one of our files?
+ #  webpage <- p                                       # note that this is a tibble
+ # }
+ source(here::here("login.R"), local= T)  
+ # source(here::here(paste0(webpage["name"], ".R")), local=environment())       # load and run server code for this page
 } # end of server                                        #    in the server environment
 
 # Run the application

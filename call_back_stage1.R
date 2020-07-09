@@ -26,7 +26,7 @@ output$pageStub <- renderUI(
  fluidRow(
   h1('Step 1 - Mechanic Request'),
   column(width = 5,
-  selectInput('selDesignation','Dev_Des',
+  selectInput('selDesignation','Device Designation',
               choices= session$userData$elevators$Dev_Des,
               selected = selected_Dev_Des
              ))
@@ -50,17 +50,7 @@ output$pageStub <- renderUI(
     condition = "input.ClientDesc == 'Other'",
     textInput("OtherCR","Other Call Reason", width = '180px')
  ))),
- div(class="header", checked=NA,
-     h5("Contractor number:", style= 'font-weight: 700; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-        font-size: 14px;
-        line-height: 1.42857143;
-        color: #333;'), 
-     # h5(paste("tel:", session$userData$phone_num))
-     a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num, style= 'font-size:20px;')
-     # a(paste("tel:", session$userData$phone_num), href=session$userData$phone_num,style= 'font-size:20px;')
-     
-          # paste(session$userData$Client$Phone)
-     ),
+
  br(),
  fluidRow(
   column(width = 6,
@@ -186,7 +176,7 @@ observeEvent(input$saveMechRequest,{
     OtherComp     = NA
   )
   
-  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
            warning = function(w) {
              killDbConnections()
              cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)

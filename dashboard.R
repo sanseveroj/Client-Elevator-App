@@ -6,16 +6,9 @@ library(shinydashboard)
 library(dbplyr)
 library(RMySQL)
 library(DBI)
-host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
-port <- 3306
-dbname <- "BOCA_2"
-user <- "JoeSans"
-password <- "Joe5933547"
 
-# killDbConnections()
-my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
-cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-servicing.db <- dbGetQuery(cn, "SELECT * FROM servicing")
+
+servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
 
 #Formatting Date strings
 servicing.db <- servicing.db  %>% mutate(Call_Placed = lubridate::as_datetime(Call_Placed), 
@@ -37,7 +30,7 @@ servicing.db$Entrapments[servicing.db$Call_Reason == "Entrapment"] <- 1
 client_id <- session$userData$clientID
 print(client_id)
 # client_id <- "OmKcuNXfR7iOziUe"
-buildings <- dbGetQuery(cn, paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
+buildings <- dbGetQuery(connect_to_db(), paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
 
 servicing.db <- merge(
   x= servicing.db,

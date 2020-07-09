@@ -1,20 +1,11 @@
 library(shinyWidgets)
 
-# Database Variables
-host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
-port <- 3306
-dbname <- "BOCA_2"
-user <- "JoeSans"
-password <- "Joe5933547"
 
-killDbConnections()
-my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
-cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
 
 output$pageStub <- renderUI({
  useShinyalert()  # Set up shinyalert
  x = rv$limn
- cat(paste0("Rendering ", webpage$name, " v.", rv$limn, "\n"))
+ # cat(paste0("Rendering ", webpage$name, " v.", rv$limn, "\n"))
  fluidPage(
  verticalLayout(tags$img(src = "Login-BOCATrack Graphics-TOP.png", width = "100%", height = "100%"),
                 tags$br(),
@@ -52,7 +43,7 @@ output$pageStub <- renderUI({
 observeEvent(input$login_btn,{
   session$userData$user <<- as.character(input$username)
   session$userData$pass <<- as.character(input$password)
-  session$userData$users.dt <<- dbGetQuery(cn, 
+  session$userData$users.dt <<- dbGetQuery(connect_to_db(), 
                                            paste("SELECT * FROM users WHERE Username = '",
                                                  session$userData$user,
                                                  # 'testdummy',
@@ -62,18 +53,18 @@ observeEvent(input$login_btn,{
                                                  "'", sep = ""))
 
   session$userData$clientID <<- session$userData$users.dt$ID_Client
-  session$userData$locations <<- dbGetQuery(cn, paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))
-  session$userData$phone_num <<- dbGetQuery(cn, paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))$Phone
+  session$userData$locations <<- dbGetQuery(connect_to_db(), paste("SELECT Address, ID_Building FROM buildings WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))
+  session$userData$phone_num <<- dbGetQuery(connect_to_db(), paste("SELECT Phone FROM client WHERE ID_Client = '", as.character(session$userData$clientID),"'", sep = ""))$Phone
   # cat(session$userData$phone_num)
   session$userData$ID_Service <<- generate_id()
   # print(session$userData$users.dt)
   session$userData$ID_Building <<- unique(session$userData$users.dt$ID_Building)
   # print(session$userData$ID_Building)
-  session$userData$elevators <<- dbGetQuery(cn, paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", 
+  session$userData$elevators <<- dbGetQuery(connect_to_db(), paste("SELECT Dev_Des, ID_Building FROM elevators WHERE ID_Building = '", 
                                                       as.character(session$userData$ID_Building),"'", sep = ""))
 
   
-  session$userData$servicing.dt <<-dbGetQuery(cn, 
+  session$userData$servicing.dt <<-dbGetQuery(connect_to_db(), 
                                               paste("SELECT * FROM servicing WHERE ID_Building = '",
                                                     session$userData$ID_Building,
                                                     # 'testdummy',

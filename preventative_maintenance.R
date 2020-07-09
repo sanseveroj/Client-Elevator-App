@@ -16,7 +16,7 @@ cat("Rendering Prev_Maint")
 fluidPage(h1('Preventative Maintenance'),
 fluidRow(
   column(width = 5,
-         selectInput('selDesignation','Dev_Des',
+         selectInput('selDesignation','Device Designation',
                      choices= session$userData$elevators$Dev_Des,
                      selected = selected_Dev_Des))
 ),
@@ -212,7 +212,7 @@ observeEvent(input$departBtn,{
               
             
 
-             tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+             tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
                       warning = function(w) {
                        killDbConnections()
                        cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
@@ -262,7 +262,7 @@ observeEvent(input$saveBtn,{
     OtherComp     = NA
   )
   
-  tryCatch({dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)},
+  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
            warning = function(w) {
              killDbConnections()
              cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
