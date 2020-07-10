@@ -48,7 +48,12 @@ output$pageStub <- renderUI({
                    margin-top: 275px;
                    font-size: 30px;
                    box-shadow: 5px 5px 15px 5px rgba(0,0,0,0.5);}")
- ))
+ ),column(width = 3, style = "margin-top: 800px;", tags$img(
+   src = "BOCALogo Graphic.png",
+   align = "right", 
+   height = "65%",
+   width = "450")))
+
 })
  
 observeEvent(input$CallBackBtn, {

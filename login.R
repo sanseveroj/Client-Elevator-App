@@ -1,6 +1,3 @@
-library(shinyWidgets)
-
-
 
 output$pageStub <- renderUI({
  useShinyalert()  # Set up shinyalert
@@ -83,15 +80,17 @@ observeEvent(input$login_btn,{
                   {source(here::here("call_back_stage1.R"),local=T)}
                   else
                     {source(here::here("preventative_maintenance.R"),local=T)}
-                }else
+                }
+                  else
                       {source(here::here("type_choice.R"), local=T)}
              } else {
               shinyalert(title = "Login Unsuccessful",text = "Username or Password incorrect, please try again.", type = 'error')
              }
              })
-
+# shinyalert(title = "You have an unsubmitted request. Would you like to resume your previous session?", inputType = "radio", choices = "Yes", "No")
+# if (choices = "Yes"){LINES 79-83} else{84}
              
-
+# LINE 78 if user selects continue previous session in shinyalert would you like to restore your previous session from "DATE"?//new line then run line 80 if not then line 85
 
 
 

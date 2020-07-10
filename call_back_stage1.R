@@ -136,7 +136,11 @@ output$pageStub <- renderUI(
                    .shiny-split-layout > div {overflow: visible;}")))),
  actionButton('submitMechRequest', 'Next'),
  actionButton('saveMechRequest', 'Save')
-))
+ ,column(width = 3, offset = 9, style = "margin-top: 400px;", tags$img(
+   src = "BOCALogo Graphic.png",
+   align = "right", 
+   height = "65%",
+   width = "450"))))
  
 observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$ID_Service    <- generate_id()

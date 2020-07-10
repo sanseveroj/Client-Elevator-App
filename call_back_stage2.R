@@ -232,7 +232,13 @@ output$pageStub <- renderUI(fluidPage(
 
  
  
- fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save'))
+ fluidRow(actionButton('prevBtn','Previous'),actionButton('departBtn', 'Submit'),actionButton('saveBtn', 'Save')
+          ,column(width = 3, offset = 9, style = "margin-top: 365px; margin-right: -50px", tags$img(
+             src = "BOCALogo Graphic.png",
+             align = "right", 
+             height = "65%",
+             width = "450")
+))
 ))
 
 observeEvent(input$departBtn,{ 
