@@ -102,7 +102,8 @@ fluidRow(
             "09:00 PM"
            )
            #end time list                            ----
-          ),
+         selected = selected_Arrival
+            ),
           column(width=1,br(),
                  actionButton("nowArrival2",'Now'),
                  tags$style(type='text/css',"#nowArrival2 {
@@ -184,7 +185,7 @@ fluidRow(
                     "09:00 PM"
                    ),
                    #end time list                            ----
-                   selected = 1
+                   selected = selected_Departure
                   ),column(width = 1,
                            br(),
                            actionButton("nowDeparture2","Now"),
@@ -256,6 +257,7 @@ observeEvent(input$saveBtn,{
   dataRow   <- data.frame(
     ID_Service    = session$userData$ID_Service,
     ID_Building   = session$userData$users.dt$ID_Building,
+    Dev_Des       = input$selDesignation,
     ID_Client     = session$userData$clientID,
     Type          = 0,
     Description   = 'PM',
@@ -267,25 +269,16 @@ observeEvent(input$saveBtn,{
     Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
     Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
     Date          = Sys.time(),
-    Dev_Des       = input$selDesignation,
     Incomplete    = 1,
     OtherCR       = NA,
     OtherComp     = NA
   )
+
+  servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  servicing.db[my_Row, ] <- dataRow
   
-  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
-           warning = function(w) {
-             killDbConnections()
-             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-             cat('write warning table reconnected')
-           },
-           error = function(e) {
-             killDbConnections()
-             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-             cat('write error table reconnected')
-           })
+  dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
   
   # cat('alert incoming')
   

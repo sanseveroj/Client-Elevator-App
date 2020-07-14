@@ -124,7 +124,8 @@ output$pageStub <- renderUI(fluidPage(
             "09:00 PM"
            )
            #end time list                            ----
-          ),
+          , selected = selected_Arrival
+           ),
           column(width=1,br(),
                  shiny::actionButton("nowArrival1",'Now'),
                  tags$style(type='text/css',"#nowArrival1 {
@@ -206,7 +207,7 @@ output$pageStub <- renderUI(fluidPage(
                     "09:00 PM"
                    ),
                    #end time list                            ----
-                   selected = 1
+                   selected = selected_Departure
                   ),column(width = 1,
                            br(),
                            actionButton("nowDeparture2","Now"),
@@ -250,17 +251,17 @@ output$pageStub <- renderUI(fluidPage(
 ))
 
 observeEvent(input$departBtn,{ 
- # cat(paste(session$userData$ID_Service,
- # session$userData$ID_Building,
- # session$userData$ID_Client,
- # session$userData$Caller,
- # input$Component,
- # session$userData$Call_Reason,
- # session$userData$Call_Placed,
- # lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
- # lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
+ cat(paste(session$userData$ID_Service,
+ session$userData$ID_Building,
+ session$userData$ID_Client,
+ session$userData$Caller,
+ input$Component,
+ session$userData$Call_Reason,
+ session$userData$Call_Placed,
+ lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
+ lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
  print(session$userData$OtherCR)
- print(input$otherComp)
+ if (is.null(input$otherComp)){session$userData$otherComp <- input$otherComp} else { session$userData$otherComp <- NA}
  
 
  dataRow   <- data.frame(
@@ -280,7 +281,7 @@ observeEvent(input$departBtn,{
   Dev_Des       = session$userData$Dev_Des,
   Incomplete    = 0,
   OtherCR       = session$userData$OtherCR,
-  OtherComp     = input$otherComp
+  OtherComp     = session$userData$otherComp
   )
  
  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
@@ -313,19 +314,25 @@ observeEvent(input$departBtn,{
 })
 
 observeEvent(input$saveBtn,{ 
-   # cat(paste(session$userData$ID_Service,
-   # session$userData$ID_Building,
-   # session$userData$ID_Client,
-   # session$userData$Caller,
-   # input$Component,
-   # session$userData$Call_Reason,
-   # session$userData$Call_Placed,
-   # lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
-   # lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
+   cat(paste(session$userData$ID_Service,
+   session$userData$ID_Building,
+   session$userData$ID_Client,
+   session$userData$Caller,
+   input$Component,
+   session$userData$Call_Reason,
+   session$userData$Call_Placed,
+   lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
+   lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
+   Sys.time(),
+   is.null(session$userData$OtherCR),
+   input$OtherComp
+   ))
+   
    
    dataRow   <- data.frame(
-      ID_Service    = session$userData$ID_Service,
+      ID_Service    = my_ID,
       ID_Building   = session$userData$ID_Building,
+      Dev_Des       = session$userData$Dev_Des,
       ID_Client     = session$userData$ID_Client,
       Type          = 1,
       Description   = 'CB',
@@ -337,25 +344,15 @@ observeEvent(input$saveBtn,{
       Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
       Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
       Date          = Sys.time(),
-      Dev_Des       = session$userData$Dev_Des,
       Incomplete    = 1,
-      OtherCR       = sesssion$userData$OtherCR,
+      OtherCR       = session$userData$OtherCR,
       OtherComp     = input$OtherComp
    )
+   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
+   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+   servicing.db[my_Row, ] <- dataRow
    
-   tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
-            warning = function(w) {
-               killDbConnections()
-               cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-               dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-               cat('write warning table reconnected')
-            },
-            error = function(e) {
-               killDbConnections()
-               cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-               dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-               cat('write error table reconnected')
-            })
+   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
    
    # cat('alert incoming')
    

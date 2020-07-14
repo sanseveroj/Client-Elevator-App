@@ -14,9 +14,11 @@
 
 if (nrow(session$userData$servicing.dt) > 0){
   cat("inside if")
+
   selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
   selected_call_reason <- session$userData$servicing.dt$Call_Reason[1]
   selected_call_placed <- session$userData$servicing.dt$Call_Placed[1]
+  print(selected_call_placed)
 }else
   {
   selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]
@@ -134,6 +136,7 @@ output$pageStub <- renderUI(
             "09:00 PM"
            )
            #end time list                            ----
+           ,selected = selected_call_placed
            ), column(width=1,br(),
                  actionButton("btnCallBack",'Now'),
                  tags$style(type='text/css',"#inp_callBack {
@@ -149,7 +152,8 @@ output$pageStub <- renderUI(
    width = "450"))))
  
 observeEvent(input$submitMechRequest, ignoreInit = T, {
- session$userData$ID_Service    <- generate_id()
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
+ session$userData$ID_Service    <- my_ID
  session$userData$ID_Building   <- session$userData$users.dt$ID_Building
  session$userData$ID_Client     <- session$userData$clientID
  session$userData$Type          <- 1
@@ -158,7 +162,7 @@ observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
  session$userData$Call_Reason   <- input$ClientDesc
  session$userData$Dev_Des       <- input$selDesignation
- session$userData$OtherCR       <- if (input$OtherCR != ""){input$OtherCR} else {NA}
+if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { session$userData$OtherCR <- NA}
  cat(paste(input$CallBack,
            session$userData$Call_Return_Time))
 
@@ -166,39 +170,31 @@ observeEvent(input$submitMechRequest, ignoreInit = T, {
 })
 
 observeEvent(input$saveMechRequest,{
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
   dataRow   <- data.frame(
-    ID_Service    = generate_id(),
+    ID_Service    = my_ID,
     ID_Building   = session$userData$users.dt$ID_Building,
+    Dev_Des       = input$selDesignation,
     ID_Client     = session$userData$clientID,
     Type          = 1,
     Description   = 'CB',
     Caller        = session$userData$users.dt$ID_User,
     Component     = NA,
     Call_Reason   = input$ClientDesc,
-    Call_Placed   = lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-")),
+    Call_Placed   = input$inp_callBack,
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,
     Date          = Sys.time(),
-    Dev_Des       = input$selDesignation,
     Incomplete    = 1,
     OtherCR       = input$OtherCR,
     OtherComp     = NA
   )
+  servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  servicing.db[my_Row, ] <- dataRow
   
-  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
-           warning = function(w) {
-             killDbConnections()
-             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-             cat('write warning table reconnected')
-           },
-           error = function(e) {
-             killDbConnections()
-             cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-             dbWriteTable(cn, name = 'servicing', value = dataRow, append = T, row.names = F)
-             cat('write error table reconnected')
-           })
+  dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
   
   # cat('alert incoming')
   

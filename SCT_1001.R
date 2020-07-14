@@ -9,7 +9,8 @@ library(here)
 library(shinythemes)
 library(lubridate)
 library(BBmisc)
-
+library(RODBC)
+library(dbx)
 #Global Variables ----
 site_pages <- tibble(name="login",sp=0)     # in terms of pages, it's the amount of user sp
 site_pages <- rbind(site_pages, tibble(name="preventative_maintenance",sp=0))     #    required to open the page.
