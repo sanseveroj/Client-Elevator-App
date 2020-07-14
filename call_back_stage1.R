@@ -15,10 +15,16 @@
 if (nrow(session$userData$servicing.dt) > 0){
   cat("inside if")
   selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
-  
-}else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]}
+  selected_call_reason <- session$userData$servicing.dt$Call_Reason[1]
+  selected_call_placed <- session$userData$servicing.dt$Call_Placed[1]
+}else
+  {
+  selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]
+selected_call_reason <- 1
+selected_call_placed <- NULL
 
-if (nrow(session$userData$servicing.dt) > 0) {selected_call_reason <- session$userData$servicing.dt$Call_Reason[1]} else selected_call_reason
+}
+
 
 output$pageStub <- renderUI(
  #  cat("Rendering CallBack"),

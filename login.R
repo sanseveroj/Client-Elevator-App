@@ -35,8 +35,18 @@ output$pageStub <- renderUI({
  ))
  
  })
-
-
+value <- F
+observeEvent(input$resumeBtn,{value <- T 
+removeModal()
+if (session$userData$servicing.dt$Type == 1)
+{source(here::here("call_back_stage1.R"),local=T)}
+else
+{source(here::here("preventative_maintenance.R"),local=T)}
+})
+observeEvent(input$newBtn,{value <- F 
+removeModal()
+source(here::here("type_choice.R"), local=T)
+})
 observeEvent(input$login_btn,{
   session$userData$user <<- as.character(input$username)
   session$userData$pass <<- as.character(input$password)
@@ -69,13 +79,17 @@ observeEvent(input$login_btn,{
   print(session$userData$elevators)
   print(session$userData$servicing.dt)
   print(nrow(session$userData$servicing.dt))
-
+  
+  if (!is.na(session$userData$servicing.dt$ID_Service[1]))
+      {showModal(modalDialog( h3("You have an unsubmitted request. Would you like to resume your previous session?"), 
+                         fluidRow(actionButton("resumeBtn", "Resume"), actionButton("newBtn", "Start new session"), align = "center"), footer = NULL))}
+  
              if (nrow(session$userData$users.dt) == 1){loggedIn <- T
               if (session$userData$users.dt$Security ==1) {
                cat('Rendering Dashboard')
                source(here::here('dashboard.R'),local=T)}
-              else if (!is.na(session$userData$servicing.dt$ID_Service[1]))
-              {
+              else if (value) 
+              {print(value)
                 if (session$userData$servicing.dt$Type == 1)
                   {source(here::here("call_back_stage1.R"),local=T)}
                   else
@@ -91,7 +105,6 @@ observeEvent(input$login_btn,{
 # if (choices = "Yes"){LINES 79-83} else{84}
              
 # LINE 78 if user selects continue previous session in shinyalert would you like to restore your previous session from "DATE"?//new line then run line 80 if not then line 85
-
 
 
 # observeEvent(input$login_btn,{

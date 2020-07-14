@@ -36,7 +36,15 @@ comp_list <-sort(comp_list)
 
 
 
-if (nrow(session$userData$servicing.dt) > 0) { selected_comp_reason <- session$userData$servicing.dt$Component[1]} else 1
+if (nrow(session$userData$servicing.dt) > 0) 
+   { selected_comp_reason <- session$userData$servicing.dt$Component[1]
+     selected_Arrival <-   session$userData$servicing.dt$Arrival
+     selected_Departure <- session$userData$servicing.dt$Departure
+} else selected_comp_reason <- 1
+       selected_Arrival <- NULL
+       selected_Departure <- NULL
+
+
 
 output$pageStub <- renderUI(fluidPage(
  h1('Step 2 - Mechanic Arrival'),

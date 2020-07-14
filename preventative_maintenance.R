@@ -6,8 +6,14 @@ print(nrow(session$userData$users.dt))
 if (nrow(session$userData$servicing.dt) > 0){
   cat("inside if")
 selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
+selected_Arrival <- session$userData$servicing.dt$Arrival
+selected_Departure <- session$userData$servicing.dt$Departure
 
-}else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]}
+}else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]
+      selected_Arrival <- NULL
+      selected_Departure <- NULL
+}
+
 print(selected_Dev_Des)
 selected_Dev_Des <- as.character(selected_Dev_Des)
 output$pageStub <- renderUI({
@@ -186,7 +192,12 @@ fluidRow(
                        margin-top: 5px;}"))
                  )),tags$head(tags$style(HTML("
                       .shiny-split-layout > div {overflow: visible;}")))
- ),actionButton('departBtn', 'Submit'), actionButton('saveBtn', 'Save')
+ ),actionButton('departBtn', 'Submit'), actionButton('saveBtn', 'Save'),
+fluidRow(column(width = 3, offset = 9, style = "margin-top: 365px; margin-right: -50px", tags$img(
+           src = "BOCALogo Graphic.png",
+           align = "right", 
+           height = "65%",
+           width = "450")))
          )})
 
 observeEvent(input$departBtn,{ 
