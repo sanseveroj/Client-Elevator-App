@@ -6,8 +6,8 @@ print(nrow(session$userData$users.dt))
 if (nrow(session$userData$servicing.dt) > 0){
   cat("inside if")
 selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
-selected_Arrival <- session$userData$servicing.dt$Arrival
-selected_Departure <- session$userData$servicing.dt$Departure
+selected_Arrival <- session$userData$servicing.dt$Arrival[1]
+selected_Departure <- session$userData$servicing.dt$Departure[1]
 
 }else{selected_Dev_Des  <- session$userData$elevators$Dev_Des[1]
       selected_Arrival <- NULL
@@ -102,7 +102,7 @@ fluidRow(
             "09:00 PM"
            )
            #end time list                            ----
-         selected = selected_Arrival
+         ,selected = selected_Arrival
             ),
           column(width=1,br(),
                  actionButton("nowArrival2",'Now'),
@@ -213,8 +213,8 @@ observeEvent(input$departBtn,{
               Call_Reason   = NA,
               Call_Placed   = NA,
               Call_Returned = NA,
-              Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
-              Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
+              Arrival       = input$mArrival2,
+              Departure     = input$mCheckout2,
               Date          = Sys.time(),
               Dev_Des       = input$selDesignation,
               Incomplete    = 0,
@@ -252,10 +252,12 @@ observeEvent(input$departBtn,{
                          js$redirect("?login")
                         })
              })
-
+print(selected_Arrival)
+print(selected_Departure)
 observeEvent(input$saveBtn,{ 
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
   dataRow   <- data.frame(
-    ID_Service    = session$userData$ID_Service,
+    ID_Service    = my_ID,
     ID_Building   = session$userData$users.dt$ID_Building,
     Dev_Des       = input$selDesignation,
     ID_Client     = session$userData$clientID,
@@ -266,8 +268,8 @@ observeEvent(input$saveBtn,{
     Call_Reason   = NA,
     Call_Placed   = NA,
     Call_Returned = NA,
-    Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival2,sep="-")),
-    Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mCheckout2,sep="-")),
+    Arrival       = input$mArrival2,
+    Departure     = input$mCheckout2,
     Date          = Sys.time(),
     Incomplete    = 1,
     OtherCR       = NA,

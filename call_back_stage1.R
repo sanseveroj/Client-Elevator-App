@@ -152,8 +152,8 @@ output$pageStub <- renderUI(
    width = "450"))))
  
 observeEvent(input$submitMechRequest, ignoreInit = T, {
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
- session$userData$ID_Service    <- my_ID
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
+ session$userData$ID_Service    <- session$userData$my_ID
  session$userData$ID_Building   <- session$userData$users.dt$ID_Building
  session$userData$ID_Client     <- session$userData$clientID
  session$userData$Type          <- 1
@@ -170,9 +170,10 @@ if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { se
 })
 
 observeEvent(input$saveMechRequest,{
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
+  print(session$userData$servicing.dt$ID_Service[1])
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
   dataRow   <- data.frame(
-    ID_Service    = my_ID,
+    ID_Service    = session$userData$my_ID,
     ID_Building   = session$userData$users.dt$ID_Building,
     Dev_Des       = input$selDesignation,
     ID_Client     = session$userData$clientID,
@@ -190,8 +191,9 @@ observeEvent(input$saveMechRequest,{
     OtherCR       = input$OtherCR,
     OtherComp     = NA
   )
+  print(session$userData$my_ID)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
   servicing.db[my_Row, ] <- dataRow
   
   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)

@@ -38,13 +38,11 @@ comp_list <-sort(comp_list)
 
 if (nrow(session$userData$servicing.dt) > 0) 
    { selected_comp_reason <- session$userData$servicing.dt$Component[1]
-     selected_Arrival <-   session$userData$servicing.dt$Arrival
-     selected_Departure <- session$userData$servicing.dt$Departure
-} else selected_comp_reason <- 1
+     selected_Arrival <-   session$userData$servicing.dt$Arrival[1]
+     selected_Departure <- session$userData$servicing.dt$Departure[1]
+} else {selected_comp_reason <- 1
        selected_Arrival <- NULL
-       selected_Departure <- NULL
-
-
+       selected_Departure <- NULL}
 
 output$pageStub <- renderUI(fluidPage(
  h1('Step 2 - Mechanic Arrival'),
@@ -263,10 +261,12 @@ observeEvent(input$departBtn,{
  print(session$userData$OtherCR)
  if (is.null(input$otherComp)){session$userData$otherComp <- input$otherComp} else { session$userData$otherComp <- NA}
  
-
+ if (is.null(input$OtherComp)) {my_other_comp <- NA} else{my_other_comp <-input$OtherComp}
+ 
  dataRow   <- data.frame(
-  ID_Service    = session$userData$ID_Service,
+  ID_Service    = session$userData$my_ID,
   ID_Building   = session$userData$ID_Building,
+  Dev_Des       = session$userData$Dev_Des,
   ID_Client     = session$userData$ID_Client,
   Type          = 1,
   Description   = 'CB',
@@ -275,13 +275,12 @@ observeEvent(input$departBtn,{
   Call_Reason   = session$userData$Call_Reason,
   Call_Placed   = session$userData$Call_Placed,
   Call_Returned = NA,
-  Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
-  Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
+  Arrival       = input$mArrival,
+  Departure     = input$mDepart,
   Date          = Sys.time(),
-  Dev_Des       = session$userData$Dev_Des,
   Incomplete    = 0,
   OtherCR       = session$userData$OtherCR,
-  OtherComp     = session$userData$otherComp
+  OtherComp     = my_other_comp
   )
  
  tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
@@ -312,6 +311,7 @@ observeEvent(input$departBtn,{
              js$redirect("?login")
             })
 })
+print(session$userData$my_ID)
 
 observeEvent(input$saveBtn,{ 
    cat(paste(session$userData$ID_Service,
@@ -321,16 +321,17 @@ observeEvent(input$saveBtn,{
    input$Component,
    session$userData$Call_Reason,
    session$userData$Call_Placed,
-   lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
-   lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
    Sys.time(),
-   is.null(session$userData$OtherCR),
-   input$OtherComp
-   ))
-   
-   
+   session$userData$OtherCR,
+   is.null(input$OtherComp
+   )))
+ 
+   print(input$mArrival)
+   print(input$mDepart)
+   if (is.null(input$OtherComp)) {my_other_comp <- NA} else{my_other_comp <-input$OtherComp}
+print(session$userData$my_ID)
    dataRow   <- data.frame(
-      ID_Service    = my_ID,
+      ID_Service    = session$userData$my_ID,
       ID_Building   = session$userData$ID_Building,
       Dev_Des       = session$userData$Dev_Des,
       ID_Client     = session$userData$ID_Client,
@@ -341,15 +342,15 @@ observeEvent(input$saveBtn,{
       Call_Reason   = session$userData$Call_Reason,
       Call_Placed   = session$userData$Call_Placed,
       Call_Returned = NA,
-      Arrival       = lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
-      Departure     = lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-")),
+      Arrival       = input$mArrival,
+      Departure     = input$mDepart,
       Date          = Sys.time(),
       Incomplete    = 1,
       OtherCR       = session$userData$OtherCR,
-      OtherComp     = input$OtherComp
+      OtherComp     = my_other_comp
    )
    servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
    servicing.db[my_Row, ] <- dataRow
    
    dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
