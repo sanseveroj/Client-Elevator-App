@@ -11,11 +11,11 @@ library(DBI)
 servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
 
 #Formatting Date strings
-servicing.db <- servicing.db  %>% mutate(Call_Placed = lubridate::as_datetime(Call_Placed), 
-                                         Call_Returned = lubridate::as_datetime(Call_Returned),
-                                         Arrival = lubridate::as_datetime(Arrival),
-                                         Departure = lubridate::as_datetime(Departure)) %>% 
- mutate(month = lubridate::month(lubridate::as_date(Date), abbr=T, label= T),
+servicing.db <- servicing.db  %>% mutate(Call_Placed = hms::as_hms(Call_Placed), 
+                                         Call_Returned = hms::as_hms(Call_Returned),
+                                         Arrival = hms::as_hms(Arrival),
+                                         Departure = hms::as_hms(Departure)) %>% 
+  mutate(month = lubridate::month(lubridate::as_date(Date), abbr=T, label= T),
          mechTime = difftime(Arrival, Call_Placed, units = 'mins'))
 servicing.db$Component[servicing.db$Component == ""] <- "Other"
 servicing.db$Component[servicing.db$Component == "NA"] <- "Other"
@@ -31,7 +31,7 @@ client_id <- session$userData$clientID
 print(client_id)
 # client_id <- "OmKcuNXfR7iOziUe"
 buildings <- dbGetQuery(connect_to_db(), paste("SELECT * FROM buildings WHERE ID_Client = '",client_id,"'", sep = ''))
-
+names(servicing.db)[which(names(servicing.db)=='month')] <- "Month"
 servicing.db <- merge(
   x= servicing.db,
   y= buildings[,c('ID_Building','Address', 'PM.ReqHrs')],
@@ -39,30 +39,31 @@ servicing.db <- merge(
 )
 servicing.db$MechDur <- round(difftime(servicing.db$Departure,servicing.db$Arrival,units='hours'),1)
 
-monthList <- data.frame(month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
+monthList <- data.frame(Month = lubridate::month(seq.Date(ymd('2019/1/1'),ymd('2019/12/1'),'month'), 
                                                  abbr=T, label=T))
 fullService <-merge(
   x = merge(
     x = monthList,
     y= servicing.db %>% 
-      group_by(month, Address)%>%
+      group_by(Month, Address)%>%
       filter(Type == 0) %>%
-      summarise(PM.PerfHrs = sum(MechDur)),
-    by = 'month',
+      summarise(PM.PerfHrs = sum(MechDur, na.rm = T)),
+    by = 'Month',
     all.x = T
   ),
   y = merge(
     x=monthList,
     y=buildings
   ),
-  by = c('month','Address'),
+  by = c('Month','Address'),
   all.y = T
 )
+
 
 fullService$PM.PerfHrs[is.na(fullService$PM.PerfHrs)] <- 0
 fullService <- fullService %>% ungroup()
 names(fullService)[1] <- "Month"
-names(servicing.db)[which(names(servicing.db)=='month')] <- "Month"
+
 
 # UI ----
 output$pageStub <- renderUI(fluidPage(
@@ -82,13 +83,25 @@ output$pageStub <- renderUI(fluidPage(
                         dimension[1] = window.innerHeight;
                         Shiny.onInputChange("dimension", dimension);
                         });
+                        '),tags$script('
+                        var dimension = [0, 0];
+                        $(document).on("shiny:connected", function(e) {
+                        dimension[0] = window.innerWidth;
+                        dimension[1] = window.innerHeight;
+                        Shiny.onLoad("dimension", dimension);
+                        });
+                        $(window).resize(function(e) {
+                        dimension[0] = window.innerWidth;
+                        dimension[1] = window.innerHeight;
+                        Shiny.onLoad("dimension", dimension);
+                        });
                         ')),
  if(loggedIn) {actionButton('logoutBtn','Logout', style= 
                              'position: fixed; right: 10px;top: 5px;')},
   title = 'BOCA',
   sidebarLayout(sidebarPanel(width = 2,
    selectInput('Month',label= 'Select Month',
-     c("All",as.character(monthList$month))),
+     c("All",as.character(monthList$Month))),
    selectInput('Address','Select Address', c("All",buildings$Address))
    ),
   mainPanel(

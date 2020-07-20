@@ -3,13 +3,13 @@ output$pageStub <- renderUI({
  useShinyalert()  # Set up shinyalert
  x = rv$limn
  # cat(paste0("Rendering ", webpage$name, " v.", rv$limn, "\n"))
- fluidPage(
- verticalLayout(tags$img(src = "Login-BOCATrack Graphics-TOP.png", width = "100%", height = "100%"),
+ fillPage(
+ tags$img(src = "Login-BOCATrack Graphics-TOP.png", width = "100%"),
                 tags$br(),
                 tags$br(), tags$br(),
                 tags$br(),
   column(
-  width = 4, offset=5,
+  width = 2, offset=5,
   h3("Login"),
   textInput("username", label = "Username"),
   passwordInput("password", label = "Password"),
@@ -22,17 +22,33 @@ output$pageStub <- renderUI({
   src = "BOCALogo Graphic.png",
   align = "center", 
   height = "65%",
-  width = "450")),
+  width = "100%")),
  tags$br(),
  tags$br(),
  tags$br(),
  tags$br(),tags$br(),
  tags$br(),
  tags$br(),
+ tags$br(), tags$br(),
  tags$br(),
- tags$img(src = "Login-BOCATrack Graphics-BOT.png", width = "100%", height = "110", align = "center")
+ tags$br(),
+ tags$br(),tags$br(),
+ tags$br(),
+ tags$br(),
+ tags$br(),
+ tags$footer(
+   tags$img(src = "Login-BOCATrack Graphics-BOT.png", width = "102%", align ="center"), style = "
+              position:absolute;
+              bottom:0;
+              width:102%;
+              height:110px;   /* Height of the footer */
+              color: white;
+              z-index: 1000;"
+ )
+   
+ )
+
  
- ))
  
  })
 value <- F
