@@ -271,7 +271,7 @@ output$servicing <- DT::renderDataTable(
   }
   else if (input$Address == "All") {
    temp <- servicing.db %>%
-    group_by(Month) %>%
+    group_by(Month, Address) %>%
     # filter(Month == 'Jan') %>%
     filter(Month == input$Month)%>%
     count(LateCB) %>%
@@ -356,16 +356,18 @@ output$servicing <- DT::renderDataTable(
      } 
    else if (input$Address == "All") {
      entrapments <- servicing.db %>% 
-       dplyr::select(Month, Entrapments) %>%
+       dplyr::select(Address, Month, Entrapments) %>%
        filter(Month == input$Month)%>%
-       group_by(Month) %>%
+       # filter(Month == "Jan")%>%
+       group_by(Address, Month) %>%
        summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
-     mutate(nonEntrapment = serviceCount - Entrapments)} 
+     mutate(nonEntrapment = serviceCount - Entrapments)
+     } 
    else if (input$Month == "All") {
      entrapments <- servicing.db %>%
-     dplyr::select(Address, Entrapments) %>%
+     dplyr::select(Month, Address, Entrapments) %>%
      filter(Address == input$Address)%>%
-     group_by(Address) %>%
+     group_by(Address, Month) %>%
      summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
        mutate(nonEntrapment = serviceCount - Entrapments)}
 
@@ -392,29 +394,49 @@ output$servicing <- DT::renderDataTable(
  })
  
  output$Calls <- renderPlotly({
-  temp <- late_month()
-  
-  validate(
-    need( nrow(temp) > 0, "Data insufficient for plot")
-  )
-  
-  temp %>% 
-    plot_ly(
-   type = 'bar',
-   width = 0.8*as.numeric(input$dimension[1]), 
-   height = 0.35*as.numeric(input$dimension[2]),
-  x = ~Month,
-   y = ~`0`,
-   name = 'On-Time' 
-  ) %>%
-   add_trace(y= ~`1`, name = 'Late') %>%
-   layout(
-    title = 'Service Calls per Month',
-    yaxis = list(title = 'Calls'),
-    xaxis = list(title = 'Month'),
-    barmode = 'stack',
-    colorway = c('#00cc00','#FF0000')
+   temp <- late_month()
+   
+   validate(
+     need( nrow(temp) > 0, "Data insufficient for plot")
    )
+   if (input$Address == "All"& input$Month != 'All') {
+     temp %>% 
+       plot_ly(
+         type = 'bar',
+         width = 0.8*as.numeric(input$dimension[1]),
+         height = 0.35*as.numeric(input$dimension[2]),
+         x = ~`0`,
+         y = ~Address,
+         name = 'On-Time' 
+       ) %>%
+       add_trace(x= ~`1`, name = 'Late') %>%
+       layout(
+         title = 'Service Calls per Month',
+         yaxis = list(title = 'Address'),
+         xaxis = list(title = 'Calls'),
+         barmode = 'stack',
+         colorway = c('#00cc00','#FF0000')
+       )
+   }else {
+     temp %>% 
+       plot_ly(
+         type = 'bar',
+         width = 0.8*as.numeric(input$dimension[1]),
+         height = 0.35*as.numeric(input$dimension[2]),
+         x = ~Month,
+         y = ~`0`,
+         name = 'On-Time' 
+       ) %>%
+       add_trace(y= ~`1`, name = 'Late') %>%
+       layout(
+         title = 'Service Calls per Month',
+         yaxis = list(title = 'Calls'),
+         xaxis = list(title = 'Month'),
+         barmode = 'stack',
+         colorway = c('#00cc00','#FF0000')
+       )
+     
+   }
  })
  output$Entrapments <- renderPlotly({
   temp <- rEntrapments()
@@ -422,7 +444,25 @@ output$servicing <- DT::renderDataTable(
   validate(
     need( nrow(temp) > 0, "Data insufficient for plot")
      )
-  temp %>%
+  if (input$Address == "All" & input$Month != 'All') {
+    temp %>% 
+      plot_ly(
+        type = 'bar',
+        width = 0.55*as.numeric(input$dimension[1]),
+        height = 0.35*as.numeric(input$dimension[2]),
+        x = ~Entrapments,
+        y = ~Address,
+        name = 'Entrapments' 
+      ) %>%
+      add_trace(x= ~nonEntrapment, name = 'Other Shutdowns') %>%
+      layout(
+        title = 'Entrapment vs Other Shutdowns',
+        yaxis = list(title = 'Address'),
+        xaxis = list(title = 'Calls'),
+        barmode = 'stack',
+        colorway = c('#00cc00','#FF0000'))
+    
+  }else{temp %>%
    plot_ly(
      type = 'bar',
      width = 0.40*as.numeric(input$dimension[1]),
@@ -440,6 +480,7 @@ output$servicing <- DT::renderDataTable(
        colorway = c('#00cc00','#FF0000'),
        showlegend = FALSE
        )
+  }
  })
  
 
