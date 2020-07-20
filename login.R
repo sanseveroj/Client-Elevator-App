@@ -61,6 +61,7 @@ else
 })
 observeEvent(input$newBtn,{value <- F 
 removeModal()
+session$userData$servicing.dt[1,] <- NA
 source(here::here("type_choice.R"), local=T)
 })
 observeEvent(input$login_btn,{

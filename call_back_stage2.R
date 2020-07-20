@@ -259,7 +259,6 @@ observeEvent(input$departBtn,{
  lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
  lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
  print(session$userData$OtherCR)
- if (is.null(input$otherComp)){session$userData$otherComp <- input$otherComp} else { session$userData$otherComp <- NA}
  
  if (is.null(input$OtherComp)) {my_other_comp <- NA} else{my_other_comp <-input$OtherComp}
  
@@ -282,20 +281,12 @@ observeEvent(input$departBtn,{
   OtherCR       = session$userData$OtherCR,
   OtherComp     = my_other_comp
   )
+ dataRow$Date <- as.character(dataRow$Date)
+ servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
+ if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+ servicing.db[my_Row, ] <- dataRow
  
- tryCatch({dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)},
-          warning = function(w) {
-           killDbConnections()
-           cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-           dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)
-           cat('write warning table reconnected')
-          },
-          error = function(e) {
-           killDbConnections()
-           cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
-           dbWriteTable(connect_to_db(), name = 'servicing', value = dataRow, append = T, row.names = F)
-           cat('write error table reconnected')
-          })
+ dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
  
  # cat('alert incoming')
  
@@ -349,6 +340,7 @@ print(session$userData$my_ID)
       OtherCR       = session$userData$OtherCR,
       OtherComp     = my_other_comp
    )
+   dataRow$Date <- as.character(dataRow$Date)
    servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
    if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
    servicing.db[my_Row, ] <- dataRow

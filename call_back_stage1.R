@@ -163,14 +163,14 @@ observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$Call_Reason   <- input$ClientDesc
  session$userData$Dev_Des       <- input$selDesignation
 if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { session$userData$OtherCR <- NA}
- cat(paste(input$CallBack,
-           session$userData$Call_Return_Time))
+ # cat(paste(input$CallBack,
+           # session$userData$Call_Return_Time))
 
  source(here::here("call_back_stage2.R"), local=environment())
 })
 
 observeEvent(input$saveMechRequest,{
-  print(session$userData$servicing.dt$ID_Service[1])
+  print("Start Save")
   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
   dataRow   <- data.frame(
     ID_Service    = session$userData$my_ID,
@@ -186,16 +186,20 @@ observeEvent(input$saveMechRequest,{
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,
-    Date          = Sys.time(),
+    Date          = Sys.Date(),
     Incomplete    = 1,
     OtherCR       = input$OtherCR,
     OtherComp     = NA
   )
-  print(session$userData$my_ID)
+ dataRow$Date <- as.character(dataRow$Date)
+ print(dataRow)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
-  servicing.db[my_Row, ] <- dataRow
-  
+  servicing.db <- servicing.db[-my_Row,]
+  servicing.db <- rbind.data.frame(servicing.db, dataRow)
+  print(servicing.db[nrow(servicing.db),])
+  # servicing.db[my_Row, 'Date'] <-lubridate::as_date(servicing.db[my_Row, "Date"])
+  print(dataRow)
   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
   
   # cat('alert incoming')
