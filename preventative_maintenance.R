@@ -202,6 +202,8 @@ fluidRow(column(width = 3, offset = 9, style = "margin-top: 365px; margin-right:
          )})
 
 observeEvent(input$departBtn,{ 
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
+  
             dataRow   <- data.frame(
               ID_Service    = session$userData$ID_Service,
               ID_Building   = session$userData$users.dt$ID_Building,
@@ -216,7 +218,7 @@ observeEvent(input$departBtn,{
               Call_Returned = NA,
               Arrival       = input$mArrival2,
               Departure     = input$mCheckout2,
-              Date          = Sys.time(),
+              Date          = Sys.Date(),
               Incomplete    = 0,
               OtherCR       = NA,
               OtherComp     = NA
@@ -261,7 +263,7 @@ observeEvent(input$saveBtn,{
     Call_Returned = NA,
     Arrival       = input$mArrival2,
     Departure     = input$mCheckout2,
-    Date          = Sys.time(),
+    Date          = Sys.Date(),
     Incomplete    = 1,
     OtherCR       = NA,
     OtherComp     = NA

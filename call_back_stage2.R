@@ -276,7 +276,7 @@ observeEvent(input$departBtn,{
   Call_Returned = NA,
   Arrival       = input$mArrival,
   Departure     = input$mDepart,
-  Date          = Sys.time(),
+  Date          = Sys.Date(),
   Incomplete    = 0,
   OtherCR       = session$userData$OtherCR,
   OtherComp     = my_other_comp
@@ -335,7 +335,7 @@ print(session$userData$my_ID)
       Call_Returned = NA,
       Arrival       = input$mArrival,
       Departure     = input$mDepart,
-      Date          = Sys.time(),
+      Date          = Sys.Date(),
       Incomplete    = 1,
       OtherCR       = session$userData$OtherCR,
       OtherComp     = my_other_comp
