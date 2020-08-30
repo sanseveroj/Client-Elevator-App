@@ -11,6 +11,8 @@ library(lubridate)
 library(BBmisc)
 library(RODBC)
 library(dbx)
+library(mailR)
+
 #Global Variables ----
 site_pages <- tibble(name="login",sp=0)     # in terms of pages, it's the amount of user sp
 site_pages <- rbind(site_pages, tibble(name="preventative_maintenance",sp=0))     #    required to open the page.
@@ -30,11 +32,11 @@ killDbConnections <- function () {
 }
 connect_to_db <- function(){
   killDbConnections()
-  host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
+  host <- "boca2.czufsn0x0chu.us-east-2.rds.amazonaws.com"
   port <- 3306
   dbname <- "BOCA_2"
-  user <- "JoeSans"
-  password <- "Joe5933547"
+  user <- "BOCAKYLE"
+  password <- "Rocktheboat867"
   
   # killDbConnections()
   cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
@@ -55,6 +57,13 @@ pageGet <- function(webpage) {
 generate_id <- function() {
   newID <- paste(collapse = '', sample(x = c(letters, LETTERS, 0:9), size = 16, replace = TRUE))
   return(newID)
+}
+
+incompletes <- function(servicing.dt){
+  unlist(lapply(1:nrow(servicing.dt), function(i){
+    paste(servicing.dt$Dev_Des[i], servicing.dt$Date[i], sep = " - ")
+    
+  }))
 }
 
 # style= 'position: relative; right: 10px;top: 5px;'

@@ -6,7 +6,7 @@ library(shinydashboard)
 library(dbplyr)
 library(RMySQL)
 library(DBI)
-
+library(tidyr)
 
 servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
 
@@ -128,6 +128,11 @@ output$pageStub <- renderUI(fluidPage(
                 tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -65px;}")), 
                 column(width = 6, offset = 12, plotlyOutput("Entrapments")),
                      tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 75px;}")))
+    ,
+    tabPanel('Device Designation',
+             br(),
+             flowLayout(box(width = 12, plotlyOutput("rEntrapmentsElev")))
+             )
                   
                 
             
@@ -380,6 +385,7 @@ output$servicing <- DT::renderDataTable(
        mutate(nonEntrapment = serviceCount - Entrapments)}
  })
  
+ 
  output$Components <- renderPlotly({
   plot_ly(
    data = rComponents(),
@@ -483,6 +489,95 @@ output$servicing <- DT::renderDataTable(
   }
  })
  
+ #Device Designation Plots
+ 
+ rEntrapmentsElev <-reactive({
 
+   validate(
+     need(input$Address != "All", message = "Must select address")
+   )
+    
+   if (input$Month == "All" & input$Address != "All") {
+     EntrapmentsElev <-
+       servicing.db %>%
+       dplyr::select(Dev_Des, Call_Reason, Address) %>%
+       mutate(Call_Reason = ifelse(Call_Reason != "Entrapment", "Shutdown", "Entrapment")) %>%
+       filter(Address == input$Address)%>%
+       # filter(Address == "3 CHRYSLER ROAD")%>%
+       group_by(Dev_Des, Call_Reason) %>%
+       summarise(Call_Reason_Count = n()) %>%
+       spread(key = Call_Reason, value = Call_Reason_Count, fill = 0)
+   }
+
+
+   
+   
+   else if (input$Month != "All" & input$Address != "All"){
+     EntrapmentsElev <-
+     servicing.db %>%
+     dplyr::select(Dev_Des, Call_Reason, Address, Month) %>%
+     mutate(Call_Reason = ifelse(Call_Reason != "Entrapment", "Shutdown", "Entrapment")) %>%
+     filter(Address == input$Address & Month == input$Month)%>%
+     # filter(Address == "3 CHRYSLER ROAD" & Month == "Jan")%>%
+     group_by(Dev_Des, Call_Reason, Month) %>%
+     summarise(Call_Reason_Count = n()) %>%
+     spread(key = Call_Reason, value = Call_Reason_Count, fill = 0)
+     }
+   
+   else {fluidPage(fluidRow(h1("Select an address to view by elevator")))  
+   }
+     })
+output$rEntrapmentsElev <- renderPlotly({
+ elevplot <- rEntrapmentsElev()
+ 
+ validate(
+   need(input$Address == "All", message = "Must select address")
+ )
+
+if (input$Month == "All" & input$Address != "All") {
+  elevplot %>%
+     plot_ly(
+       type = 'bar',
+       width = 0.40*as.numeric(input$dimension[1]),
+       height = 0.45*as.numeric(input$dimension[2]),
+       x = ~Dev_Des,
+       y= ~Entrapment,
+       name = 'EntrapmentsElev'
+     ) %>%
+     add_bars(y = ~Shutdown, name = 'Shutdowns') %>%
+     layout(
+       title = 'Shutdowns vs Entrapments',
+       yaxis = list(title = 'Event'),
+       xaxis = list(title = 'Elevator'),
+       barmode = 'stack',
+       colorway = c('#00cc00','#FF0000'),
+       showlegend = FALSE
+     )}
+ 
+ else if (input$Month != "All" & input$Address != "All") {
+   elevplot %>%
+     plot_ly(
+       type = 'bar',
+       width = 0.40*as.numeric(input$dimension[1]),
+       height = 0.45*as.numeric(input$dimension[2]),
+       x = ~Dev_Des,
+       y= ~Entrapment,
+       name = 'EntrapmentsElev'
+     ) %>%
+     add_bars(y = ~Shutdown, name = 'Shutdowns') %>%
+     layout(
+       title = 'Shutdowns vs Entrapments',
+       yaxis = list(title = 'Event'),
+       xaxis = list(title = 'Elevator'),
+       barmode = 'stack',
+       colorway = c('#00cc00','#FF0000'),
+       showlegend = FALSE
+     )}
+   else {fluidPage(fluidRow(h1("Select an address to view by elevator")))}
+   
+   
+ 
+ })
+ 
 # Load data into temp by running servicing.db run 232-241 to get temp.
 

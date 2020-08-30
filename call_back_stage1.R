@@ -170,7 +170,29 @@ if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { se
 })
 
 observeEvent(input$saveMechRequest,{
+  sender <- "kyle.ciantar77@gmail.com"
+  recepients <- c("kyle.ciantar@uconn.edu", "kyle.ciantar77@gmail.com")
+  
+  if (is.na(session$userData$servicing.dt$ID_Service[1]) && input$ClientDesc %in% c("Shutdown", "Entrapment")){
+    
+    send.mail(from= sender,
+              to= recepients,
+              subject="Shutdown",
+              body="There has been a elevator shutdown",
+              html=T,
+              smtp=list(host.name = "smtp.gmail.com",
+                        port = 465,
+                        user.name = "kyle.ciantar77",
+                        passwd = "Heartdog7",
+                        ssl = T),
+              authenticate=T, 
+              send = TRUE)
+    
+
+  }
   print("Start Save")
+  # print(session$userData$servicing.dt$ID_Service[1])
+  # print(input$ClientDesc)
   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
   dataRow   <- data.frame(
     ID_Service    = session$userData$my_ID,
@@ -186,20 +208,21 @@ observeEvent(input$saveMechRequest,{
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,
-    Date          = Sys.Date(),
+    Date          = Sys.time(),
     Incomplete    = 1,
     OtherCR       = input$OtherCR,
     OtherComp     = NA
   )
  dataRow$Date <- as.character(dataRow$Date)
- print(dataRow)
+ # print(dataRow)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} 
+  else {my_Row <- nrow(servicing.db) + 1}
   servicing.db <- servicing.db[-my_Row,]
   servicing.db <- rbind.data.frame(servicing.db, dataRow)
-  print(servicing.db[nrow(servicing.db),])
+  # print(servicing.db[nrow(servicing.db),])
   # servicing.db[my_Row, 'Date'] <-lubridate::as_date(servicing.db[my_Row, "Date"])
-  print(dataRow)
+  # print(dataRow)
   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
   
   # cat('alert incoming')

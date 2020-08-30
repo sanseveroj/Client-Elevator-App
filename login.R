@@ -53,6 +53,16 @@ output$pageStub <- renderUI({
  })
 value <- F
 observeEvent(input$resumeBtn,{value <- T 
+my_string <- stringr::str_split(input$Incomplete, pattern = " - ")
+print(my_string)
+session$userData$servicing.dt <- session$userData$servicing.dt %>% 
+  filter(Dev_Des == my_string[[1]][1] &
+           Date == my_string[[1]][2])
+
+# servicing.dt %>% 
+#   filter(Dev_Des == my_string[[1]][1] &
+#            Date == my_string[[1]][2] &
+#            Component == my_string[[1]][3])
 removeModal()
 if (session$userData$servicing.dt$Type == 1)
 {source(here::here("call_back_stage1.R"),local=T)}
@@ -92,14 +102,16 @@ observeEvent(input$login_btn,{
                                               paste("SELECT * FROM servicing WHERE ID_Building = '",
                                                     session$userData$ID_Building,
                                                     # 'testdummy',
-                                                    "' AND Incomplete = 1", sep = ""))[1,]
+                                                    "' AND Incomplete = 1", sep = ""))
   print(session$userData$elevators)
   print(session$userData$servicing.dt)
   print(nrow(session$userData$servicing.dt))
   
   if (!is.na(session$userData$servicing.dt$ID_Service[1]))
       {showModal(modalDialog( h3("You have an unsubmitted request. Would you like to resume your previous session?"), 
-                         fluidRow(actionButton("resumeBtn", "Resume"), actionButton("newBtn", "Start new session"), align = "center"), footer = NULL))}
+                              fluidRow(selectInput("Incomplete", label = "Select from previous session", choices = incompletes(servicing.dt = session$userData$servicing.dt))),
+                         fluidRow(actionButton("resumeBtn", "Resume"),
+                                    actionButton("newBtn", "Start new session"), align = "center"), footer = NULL))}
   
              if (nrow(session$userData$users.dt) == 1){loggedIn <- T
               if (session$userData$users.dt$Security ==1) {
