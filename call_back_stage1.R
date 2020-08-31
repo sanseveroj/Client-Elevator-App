@@ -204,7 +204,7 @@ observeEvent(input$saveMechRequest,{
     Caller        = session$userData$users.dt$ID_User,
     Component     = NA,
     Call_Reason   = input$ClientDesc,
-    Call_Placed   = input$inp_callBack,
+    Call_Placed   = paste(str_trunc(input$inp_callBack, width = 5, side = "right", ellipsis = ""), ":00" , sep = ""),
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,

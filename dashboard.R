@@ -11,7 +11,8 @@ library(tidyr)
 servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
 
 #Formatting Date strings
-servicing.db <- servicing.db  %>% mutate(Call_Placed = hms::as_hms(Call_Placed), 
+servicing.db <- servicing.db  %>% slice(-1) %>%
+  mutate(Call_Placed = hms::as_hms(Call_Placed), 
                                          Call_Returned = hms::as_hms(Call_Returned),
                                          Arrival = hms::as_hms(Arrival),
                                          Departure = hms::as_hms(Departure)) %>% 
@@ -524,15 +525,10 @@ output$servicing <- DT::renderDataTable(
      spread(key = Call_Reason, value = Call_Reason_Count, fill = 0)
      }
    
-   else {fluidPage(fluidRow(h1("Select an address to view by elevator")))  
-   }
      })
 output$rEntrapmentsElev <- renderPlotly({
  elevplot <- rEntrapmentsElev()
  
- validate(
-   need(input$Address == "All", message = "Must select address")
- )
 
 if (input$Month == "All" & input$Address != "All") {
   elevplot %>%
@@ -573,7 +569,7 @@ if (input$Month == "All" & input$Address != "All") {
        colorway = c('#00cc00','#FF0000'),
        showlegend = FALSE
      )}
-   else {fluidPage(fluidRow(h1("Select an address to view by elevator")))}
+   
    
    
  
