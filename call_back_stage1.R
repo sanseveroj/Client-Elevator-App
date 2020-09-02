@@ -170,26 +170,7 @@ if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { se
 })
 
 observeEvent(input$saveMechRequest,{
-  sender <- "kyle.ciantar77@gmail.com"
-  recepients <- c("kyle.ciantar@uconn.edu", "kyle.ciantar77@gmail.com")
-  
-  if (is.na(session$userData$servicing.dt$ID_Service[1]) && input$ClientDesc %in% c("Shutdown", "Entrapment")){
-    
-    send.mail(from= sender,
-              to= recepients,
-              subject="Shutdown",
-              body="There has been a elevator shutdown",
-              html=T,
-              smtp=list(host.name = "smtp.gmail.com",
-                        port = 465,
-                        user.name = "kyle.ciantar77",
-                        passwd = "Heartdog7",
-                        ssl = T),
-              authenticate=T, 
-              send = TRUE)
-    
 
-  }
   print("Start Save")
   # print(session$userData$servicing.dt$ID_Service[1])
   # print(input$ClientDesc)

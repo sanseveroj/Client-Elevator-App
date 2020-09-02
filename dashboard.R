@@ -567,13 +567,23 @@ if (input$Month == "All" & input$Address != "All") {
        xaxis = list(title = 'Elevator'),
        barmode = 'stack',
        colorway = c('#00cc00','#FF0000'),
-       showlegend = FALSE
+       showlegend = TRUE
      )}
    
    
    
  
  })
+
+# rshutdowntime <- reactive(
+#   round(difftime(servicing.db$Departure,servicing.db$Call_Placed,units='hours'),1)
+#   totalservicehours <-
+#     servicing.db %>%
+#     dplyr::select(Dev_Des, Call_Placed, Address, Departure) %>%
+#     # filter(Address == input$Address)%>%
+#     filter(Address == "3 CHRYSLER ROAD")%>%
+#     group_by(Dev_Des)
+# )
  
 # Load data into temp by running servicing.db run 232-241 to get temp.
 
