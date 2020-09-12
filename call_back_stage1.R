@@ -170,6 +170,7 @@ if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { se
 })
 
 observeEvent(input$saveMechRequest,{
+  
 
   print("Start Save")
   # print(session$userData$servicing.dt$ID_Service[1])
