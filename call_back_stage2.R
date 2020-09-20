@@ -1,6 +1,12 @@
 # Lists for Drop down ####
 comp_list <- c( 
-   "Doors",
+   "Door Hall",
+   "Door Car",
+   "Door Operator",
+   "Door Restrictor",
+   "Door Safety Edge",
+   "Door Software",
+   "Door Track",
    "Drive Fault",
    "Unknown",
    "Software/Controller",
@@ -36,7 +42,7 @@ comp_list <-sort(comp_list)
 
 
 
-if (nrow(session$userData$servicing.dt) > 0) 
+if (session$userData$resumeFlag) 
    { selected_comp_reason <- session$userData$servicing.dt$Component[1]
      selected_Arrival <-   session$userData$servicing.dt$Arrival[1]
      selected_Departure <- session$userData$servicing.dt$Departure[1]
@@ -258,7 +264,7 @@ observeEvent(input$departBtn,{
  session$userData$Call_Placed,
  lubridate::ymd_hm(paste(Sys.Date(),input$mArrival,sep="-")),
  lubridate::ymd_hm(paste(Sys.Date(),input$mDepart,sep="-"))))
- print(session$userData$OtherCR)
+ # print(session$userData$OtherCR)
  
  if (is.null(input$OtherComp)) {my_other_comp <- NA} else{my_other_comp <-input$OtherComp}
  
@@ -272,10 +278,10 @@ observeEvent(input$departBtn,{
   Caller        = session$userData$Caller,
   Component     = input$Component,
   Call_Reason   = session$userData$Call_Reason,
-  Call_Placed   = paste(str_trunc(session$userData$Call_Placed, width = 5, side = "right", ellipsis = ""), ":00" , sep = ""),           
+  Call_Placed   = str_trunc(as.character(session$userData$Call_Placed), width = 8, side = "left", ellipsis = ""),           
   Call_Returned = NA,
-  Arrival       = paste(str_trunc(input$mArrival, width = 5, side = "right", ellipsis = ""), ":00" , sep = ""),
-  Departure     = paste(str_trunc(input$mDepart, width = 5, side = "right", ellipsis = ""), ":00" , sep = ""),
+  Arrival       = str_trunc(input$mArrival, width = 8, side = "left", ellipsis = ""),
+  Departure     = str_trunc(input$mDepart, width = 8, side = "left", ellipsis = ""),
   Date          = Sys.Date(),
   Incomplete    = 0,
   OtherCR       = session$userData$OtherCR,
@@ -283,8 +289,8 @@ observeEvent(input$departBtn,{
   )
  dataRow$Date <- as.character(dataRow$Date)
  servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
- if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
- servicing.db[my_Row, ] <- dataRow
+ if (session$userData$resumeFlag) {servicing.db[which(servicing.db$ID_Service == session$userData$my_ID),] <- dataRow} 
+ else {servicing.db <- rbind.data.frame(servicing.db, dataRow)}
  
  dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
  
@@ -342,7 +348,7 @@ print(session$userData$my_ID)
    )
    dataRow$Date <- as.character(dataRow$Date)
    servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-   if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+   if (session$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
    servicing.db[my_Row, ] <- dataRow
    
    dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)

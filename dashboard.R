@@ -108,7 +108,7 @@ output$pageStub <- renderUI(fluidPage(
   mainPanel(
    tabsetPanel(
     
-    tabPanel('Preventative Maintenance',
+    tabPanel('Preventive Maintenance',
              br(),
      fluidRow(
       box(width = 12,
@@ -126,9 +126,9 @@ output$pageStub <- renderUI(fluidPage(
              br(),
             flowLayout(box(width = 6,plotlyOutput("Calls"))),
             flowLayout(column(width = 6, plotlyOutput("Components"),
-                tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -65px;}")), 
+                tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -125px;}")), 
                 column(width = 6, offset = 12, plotlyOutput("Entrapments")),
-                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 75px;}")))
+                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 105px;}")))
     ,
     tabPanel('Device Designation',
              br(),
@@ -181,7 +181,7 @@ observeEvent(input$dimension,{
               mode = 'lines',
               name = 'Performed Hours') %>%
     layout(
-     title = 'Preventative Maintenance',
+     title = 'Preventive Maintenance',
      yaxis = list(title = 'Hours'),
      xaxis = list(title = 'Month'),
      colorway = c('#FF0000','#00cc00')
@@ -263,7 +263,8 @@ output$servicing <- DT::renderDataTable(
 #Call Back Plots ---- 
  late_month <- reactive({
   if(input$Address== "All" & input$Month== "All") {
-   temp <- servicing.db %>% 
+   temp <- servicing.db %>%
+    filter(Type == 1) %>%
     group_by(Month) %>% 
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
@@ -279,7 +280,7 @@ output$servicing <- DT::renderDataTable(
    temp <- servicing.db %>%
     group_by(Month, Address) %>%
     # filter(Month == 'Jan') %>%
-    filter(Month == input$Month)%>%
+    filter(Month == input$Month, Type == 1)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    temp[is.na(temp)] <-0
@@ -292,7 +293,7 @@ output$servicing <- DT::renderDataTable(
    else if (input$Month == "All") {
    temp <- servicing.db %>%
     group_by(Month) %>%
-    filter(Address == input$Address)%>%
+    filter(Address == input$Address, Type == 1)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    
@@ -306,7 +307,7 @@ output$servicing <- DT::renderDataTable(
    temp <- servicing.db %>%
     group_by(Month) %>%
     filter(Address == input$Address,
-           Month == input$Month)%>%
+           Month == input$Month, Type == 1)%>%
     count(LateCB) %>%
     tidyr::spread(LateCB, n)
    temp[is.na(temp)] <-0
@@ -323,24 +324,25 @@ output$servicing <- DT::renderDataTable(
  rComponents <-reactive({
   if(input$Address== "All" & input$Month== "All") {
    components <- servicing.db %>%
+     filter(Type == 1) %>%
     group_by(Component) %>%
     summarise(compCount = n())
   }
   else if (input$Address == "All") {
    components <- servicing.db %>%
    group_by(Month,Component) %>%
-   filter(Month == input$Month)%>%
+   filter(Month == input$Month, Type == 1)%>%
    summarise(compCount = n())}
   else if (input$Month == "All") {
    components <- servicing.db %>%
     group_by(Address,Component) %>%
-    filter(Address == input$Address)%>%
+    filter(Address == input$Address, Type == 1)%>%
     summarise(compCount = n())}
   else {
    components <- servicing.db %>%
     group_by(Month,Address,Component) %>%
     filter(Address == input$Address,
-           Month == input$Month)%>%
+           Month == input$Month, Type == 1)%>%
     summarise(compCount = n())}
  })
  
@@ -397,7 +399,7 @@ output$servicing <- DT::renderDataTable(
    labels = ~Component,
    textinfo = "none",
    values = ~compCount
-   )%>% layout(title = 'Components', showlegend = FALSE)
+   )%>% layout(title = 'Components', showlegend = TRUE)
  })
  
  output$Calls <- renderPlotly({
@@ -418,7 +420,7 @@ output$servicing <- DT::renderDataTable(
        ) %>%
        add_trace(x= ~`1`, name = 'Late') %>%
        layout(
-         title = 'Service Calls per Month',
+         title = 'Service Calls per Month 2020 YTD',
          yaxis = list(title = 'Address'),
          xaxis = list(title = 'Calls'),
          barmode = 'stack',
@@ -463,11 +465,14 @@ output$servicing <- DT::renderDataTable(
       ) %>%
       add_trace(x= ~nonEntrapment, name = 'Other Shutdowns') %>%
       layout(
-        title = 'Entrapment vs Other Shutdowns',
+        title = 'Entrapments and Other Shutdowns',
         yaxis = list(title = 'Address'),
         xaxis = list(title = 'Calls'),
         barmode = 'stack',
-        colorway = c('#00cc00','#FF0000'))
+        colorway = c('#FF0000','#FFFF00'),
+        showlegend = TRUE
+        )
+    
     
   }else{temp %>%
    plot_ly(
@@ -480,12 +485,12 @@ output$servicing <- DT::renderDataTable(
    ) %>%
   add_bars(y = ~nonEntrapment, name = 'Other Shutdowns', x = ~Month) %>%
      layout(
-       title = 'Shutdowns vs Entrapments',
-       yaxis = list(title = 'Shutdowns'),
+       title = 'Entrapments and Other Shutdowns 2020 YTD',
+       yaxis = list(title = 'Event'),
        xaxis = list(title = 'Month'),
        barmode = 'stack',
-       colorway = c('#00cc00','#FF0000'),
-       showlegend = FALSE
+       colorway = c('#FF0000','#FFFF00'),
+       showlegend = TRUE
        )
   }
  })
@@ -528,7 +533,7 @@ output$servicing <- DT::renderDataTable(
      })
 output$rEntrapmentsElev <- renderPlotly({
  elevplot <- rEntrapmentsElev()
- 
+
 
 if (input$Month == "All" & input$Address != "All") {
   elevplot %>%
@@ -538,16 +543,16 @@ if (input$Month == "All" & input$Address != "All") {
        height = 0.45*as.numeric(input$dimension[2]),
        x = ~Dev_Des,
        y= ~Entrapment,
-       name = 'EntrapmentsElev'
+       name = 'Entrapments'
      ) %>%
-     add_bars(y = ~Shutdown, name = 'Shutdowns') %>%
+     add_bars(y = ~Shutdown, name = 'Other Shutdowns') %>%
      layout(
-       title = 'Shutdowns vs Entrapments',
+       title = 'Shutdowns and Entrapments 2020 YTD',
        yaxis = list(title = 'Event'),
        xaxis = list(title = 'Elevator'),
        barmode = 'stack',
-       colorway = c('#00cc00','#FF0000'),
-       showlegend = FALSE
+       colorway = c('#FF0000','#FFFF00'),
+       showlegend = TRUE
      )}
  
  else if (input$Month != "All" & input$Address != "All") {
@@ -558,15 +563,15 @@ if (input$Month == "All" & input$Address != "All") {
        height = 0.45*as.numeric(input$dimension[2]),
        x = ~Dev_Des,
        y= ~Entrapment,
-       name = 'EntrapmentsElev'
+       name = 'Entrapments'
      ) %>%
-     add_bars(y = ~Shutdown, name = 'Shutdowns') %>%
+     add_bars(y = ~Shutdown, name = 'Other Shutdowns') %>%
      layout(
-       title = 'Shutdowns vs Entrapments',
+       title = 'Shutdowns and Entrapments',
        yaxis = list(title = 'Event'),
        xaxis = list(title = 'Elevator'),
        barmode = 'stack',
-       colorway = c('#00cc00','#FF0000'),
+       colorway = c('#FF0000','#FFFF00'),
        showlegend = TRUE
      )}
    

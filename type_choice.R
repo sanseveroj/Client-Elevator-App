@@ -41,7 +41,7 @@ output$pageStub <- renderUI({
              font-size: 30px;
              box-shadow: 5px 5px 15px 5px rgba(0,0,0,0.5);}")
  ),column(width = 3,align= 'left',
-        actionButton('PrevMainBtn', HTML('Preventative <br/>   Maintenance'), icon('wrench')),
+        actionButton('PrevMainBtn', HTML('Preventive <br/>   Maintenance'), icon('wrench')),
         tags$style(type='text/css', "#PrevMainBtn {
                    height: 170px; 
                    width:  275px;

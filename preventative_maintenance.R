@@ -3,7 +3,7 @@ library(dplyr)
 library(dbplyr)
 #Database Variables
 print(nrow(session$userData$users.dt))
-if (nrow(session$userData$servicing.dt) > 0){
+if (session$userData$resumeFlag){
   cat("inside if")
 selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
 selected_Arrival <- session$userData$servicing.dt$Arrival[1]
@@ -19,7 +19,7 @@ selected_Dev_Des <- as.character(selected_Dev_Des)
 output$pageStub <- renderUI({
 useShinyalert()
 cat("Rendering Prev_Maint")
-fluidPage(h1('Preventative Maintenance'),
+fluidPage(h1('Preventive Maintenance'),
 fluidRow(
   column(width = 5,
          selectInput('selDesignation','Device Designation',
@@ -202,7 +202,7 @@ fluidRow(column(width = 3, offset = 9, style = "margin-top: 365px; margin-right:
          )})
 
 observeEvent(input$departBtn,{ 
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
+  if (session$userData$resumeFlag) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
   
             dataRow   <- data.frame(
               ID_Service    = session$userData$ID_Service,
@@ -226,7 +226,7 @@ observeEvent(input$departBtn,{
               
             dataRow$Date <- as.character(dataRow$Date)
             servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-            if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+            if (session$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
             servicing.db[my_Row, ] <- dataRow
             
             dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
@@ -248,7 +248,7 @@ observeEvent(input$departBtn,{
 print(selected_Arrival)
 print(selected_Departure)
 observeEvent(input$saveBtn,{ 
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
+  if (session$userData$resumeFlag) {my_ID <- session$userData$servicing.dt$ID_Service[1]} else {my_ID <- generate_id()}
   dataRow   <- data.frame(
     ID_Service    = my_ID,
     ID_Building   = session$userData$users.dt$ID_Building,
@@ -270,7 +270,7 @@ observeEvent(input$saveBtn,{
   )
   dataRow$Date <- as.character(dataRow$Date)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  if (sesssion$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
   servicing.db[my_Row, ] <- dataRow
   
   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)

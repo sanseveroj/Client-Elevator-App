@@ -1,4 +1,4 @@
-
+session$userData$resumeFlag <- F
 output$pageStub <- renderUI({
  useShinyalert()  # Set up shinyalert
  x = rv$limn
@@ -58,7 +58,7 @@ print(my_string)
 session$userData$servicing.dt <- session$userData$servicing.dt %>% 
   filter(Dev_Des == my_string[[1]][1] &
            Date == my_string[[1]][2])
-
+session$userData$resumeFlag <- T
 # servicing.dt %>% 
 #   filter(Dev_Des == my_string[[1]][1] &
 #            Date == my_string[[1]][2] &
@@ -71,7 +71,7 @@ else
 })
 observeEvent(input$newBtn,{value <- F 
 removeModal()
-session$userData$servicing.dt[1,] <- NA
+# session$userData$servicing.dt[1,] <- NA
 source(here::here("type_choice.R"), local=T)
 })
 observeEvent(input$login_btn,{

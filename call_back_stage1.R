@@ -12,7 +12,7 @@
 # my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
 # cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
 
-if (nrow(session$userData$servicing.dt) > 0){
+if (session$userData$resumeFlag){
   cat("inside if")
 
   selected_Dev_Des  <- session$userData$servicing.dt$Dev_Des[1]
@@ -152,7 +152,8 @@ output$pageStub <- renderUI(
    width = "450"))))
  
 observeEvent(input$submitMechRequest, ignoreInit = T, {
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
+  if (session$userData$resumeFlag) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} 
+  else {session$userData$my_ID <- generate_id()}
  session$userData$ID_Service    <- session$userData$my_ID
  session$userData$ID_Building   <- session$userData$users.dt$ID_Building
  session$userData$ID_Client     <- session$userData$clientID
@@ -173,9 +174,10 @@ observeEvent(input$saveMechRequest,{
   
 
   print("Start Save")
-  # print(session$userData$servicing.dt$ID_Service[1])
+  print(session$userData$servicing.dt$ID_Service[1])
   # print(input$ClientDesc)
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} else {session$userData$my_ID <- generate_id()}
+  if (session$userData$resumeFlag) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]}
+  else {session$userData$my_ID <- generate_id()}
   dataRow   <- data.frame(
     ID_Service    = session$userData$my_ID,
     ID_Building   = session$userData$users.dt$ID_Building,
@@ -186,7 +188,7 @@ observeEvent(input$saveMechRequest,{
     Caller        = session$userData$users.dt$ID_User,
     Component     = NA,
     Call_Reason   = input$ClientDesc,
-    Call_Placed   = paste(str_trunc(input$inp_callBack, width = 5, side = "right", ellipsis = ""), ":00" , sep = ""),
+    Call_Placed   = str_trunc(input$inp_callBack, width = 8, side = "left", ellipsis = ""),
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,
@@ -198,7 +200,7 @@ observeEvent(input$saveMechRequest,{
  dataRow$Date <- as.character(dataRow$Date)
  # print(dataRow)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-  if (!is.na(session$userData$servicing.dt$ID_Service[1])) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} 
+  if (session$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} 
   else {my_Row <- nrow(servicing.db) + 1}
   servicing.db <- servicing.db[-my_Row,]
   servicing.db <- rbind.data.frame(servicing.db, dataRow)
