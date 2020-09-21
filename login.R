@@ -72,7 +72,7 @@ else
 observeEvent(input$newBtn,{value <- F 
 removeModal()
 # session$userData$servicing.dt[1,] <- NA
-source(here::here("type_choice.R"), local=T)
+# source(here::here("type_choice.R"), local=T)
 })
 observeEvent(input$login_btn,{
   session$userData$user <<- as.character(input$username)
@@ -109,7 +109,8 @@ observeEvent(input$login_btn,{
   
   if (!is.na(session$userData$servicing.dt$ID_Service[1]))
       {showModal(modalDialog( h3("You have an unsubmitted request. Would you like to resume your previous session?"), 
-                              fluidRow(selectInput("Incomplete", label = "Select from previous session", choices = incompletes(servicing.dt = session$userData$servicing.dt))),
+                              fluidRow(selectInput("Incomplete", label = "Select from previous session", 
+                                                   choices = incompletes(servicing.dt = session$userData$servicing.dt))),
                          fluidRow(actionButton("resumeBtn", "Resume"),
                                     actionButton("newBtn", "Start new session"), align = "center"), footer = NULL))}
   

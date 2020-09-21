@@ -349,6 +349,7 @@ output$servicing <- DT::renderDataTable(
  rEntrapments <-reactive({
    if(input$Address== "All" & input$Month== "All") {
      entrapments <- servicing.db %>% 
+       filter(Type == 1) %>%
        dplyr::select(Month, Entrapments) %>%
      group_by(Month) %>%
        summarise(Entrapments = sum(Entrapments), 
@@ -364,8 +365,8 @@ output$servicing <- DT::renderDataTable(
      } 
    else if (input$Address == "All") {
      entrapments <- servicing.db %>% 
+       filter(Month == input$Month, Type == 1)%>%
        dplyr::select(Address, Month, Entrapments) %>%
-       filter(Month == input$Month)%>%
        # filter(Month == "Jan")%>%
        group_by(Address, Month) %>%
        summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
@@ -373,16 +374,16 @@ output$servicing <- DT::renderDataTable(
      } 
    else if (input$Month == "All") {
      entrapments <- servicing.db %>%
+       filter(Address == input$Address, Type == 1)%>%
      dplyr::select(Month, Address, Entrapments) %>%
-     filter(Address == input$Address)%>%
      group_by(Address, Month) %>%
      summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
        mutate(nonEntrapment = serviceCount - Entrapments)}
 
    else {
      entrapments <- servicing.db %>%
+       filter(Month == input$Month, Address == input$Address, Type == 1)%>%
      dplyr::select(Month, Address, Entrapments) %>%
-     filter(Month == input$Month, Address == input$Address)%>%
        group_by(Month, Address) %>%
        summarise(Entrapments = sum(Entrapments), serviceCount = n()) %>%
        mutate(nonEntrapment = serviceCount - Entrapments)}
@@ -420,7 +421,7 @@ output$servicing <- DT::renderDataTable(
        ) %>%
        add_trace(x= ~`1`, name = 'Late') %>%
        layout(
-         title = 'Service Calls per Month 2020 YTD',
+         title = 'Service Calls per Month',
          yaxis = list(title = 'Address'),
          xaxis = list(title = 'Calls'),
          barmode = 'stack',
@@ -438,7 +439,7 @@ output$servicing <- DT::renderDataTable(
        ) %>%
        add_trace(y= ~`1`, name = 'Late') %>%
        layout(
-         title = 'Service Calls per Month',
+         title = 'Service Calls per Month YTD 2020',
          yaxis = list(title = 'Calls'),
          xaxis = list(title = 'Month'),
          barmode = 'stack',
@@ -506,9 +507,9 @@ output$servicing <- DT::renderDataTable(
    if (input$Month == "All" & input$Address != "All") {
      EntrapmentsElev <-
        servicing.db %>%
+       filter(Address == input$Address, Type == 1)%>%
        dplyr::select(Dev_Des, Call_Reason, Address) %>%
        mutate(Call_Reason = ifelse(Call_Reason != "Entrapment", "Shutdown", "Entrapment")) %>%
-       filter(Address == input$Address)%>%
        # filter(Address == "3 CHRYSLER ROAD")%>%
        group_by(Dev_Des, Call_Reason) %>%
        summarise(Call_Reason_Count = n()) %>%
@@ -521,9 +522,9 @@ output$servicing <- DT::renderDataTable(
    else if (input$Month != "All" & input$Address != "All"){
      EntrapmentsElev <-
      servicing.db %>%
+     filter(Address == input$Address, Month == input$Month, Type == 1)%>%
      dplyr::select(Dev_Des, Call_Reason, Address, Month) %>%
      mutate(Call_Reason = ifelse(Call_Reason != "Entrapment", "Shutdown", "Entrapment")) %>%
-     filter(Address == input$Address & Month == input$Month)%>%
      # filter(Address == "3 CHRYSLER ROAD" & Month == "Jan")%>%
      group_by(Dev_Des, Call_Reason, Month) %>%
      summarise(Call_Reason_Count = n()) %>%
