@@ -40,7 +40,7 @@ comp_list <-sort(comp_list)
 #### End List ####
 
 
-
+# print(session$userData$Call_Placed)
 
 if (session$userData$resumeFlag) 
    { selected_comp_reason <- session$userData$servicing.dt$Component[1]
@@ -311,6 +311,8 @@ observeEvent(input$departBtn,{
 print(session$userData$my_ID)
 
 observeEvent(input$saveBtn,{ 
+   print(session$userData$Call_Placed)
+   
    cat(paste(session$userData$ID_Service,
    session$userData$ID_Building,
    session$userData$ID_Client,
@@ -323,10 +325,10 @@ observeEvent(input$saveBtn,{
    is.null(input$OtherComp
    )))
  
-   print(input$mArrival)
-   print(input$mDepart)
+   # print(input$mArrival)
+   # print(input$mDepart)
    if (is.null(input$OtherComp)) {my_other_comp <- NA} else{my_other_comp <-input$OtherComp}
-print(session$userData$my_ID)
+print(as.character(session$userData$Call_Placed))
    dataRow   <- data.frame(
       ID_Service    = session$userData$my_ID,
       ID_Building   = session$userData$ID_Building,
@@ -337,7 +339,7 @@ print(session$userData$my_ID)
       Caller        = session$userData$Caller,
       Component     = input$Component,
       Call_Reason   = session$userData$Call_Reason,
-      Call_Placed   = session$userData$Call_Placed,
+      Call_Placed   = str_trunc(as.character(session$userData$Call_Placed), width = 10, side = "right", ellipsis = ""),
       Call_Returned = NA,
       Arrival       = input$mArrival,
       Departure     = input$mDepart,
@@ -346,11 +348,13 @@ print(session$userData$my_ID)
       OtherCR       = session$userData$OtherCR,
       OtherComp     = my_other_comp
    )
+   
    dataRow$Date <- as.character(dataRow$Date)
    servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
    if (session$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == session$userData$my_ID)} else {my_Row <- nrow(servicing.db) + 1}
    servicing.db[my_Row, ] <- dataRow
-   
+   print(servicing.db)
+   print(str(servicing.db))
    dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)
    
    # cat('alert incoming')

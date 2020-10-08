@@ -270,7 +270,7 @@ observeEvent(input$saveBtn,{
   )
   dataRow$Date <- as.character(dataRow$Date)
   servicing.db <- dbGetQuery(connect_to_db(), "SELECT * FROM servicing")
-  if (sesssion$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
+  if (session$userData$resumeFlag) {my_Row <- which(servicing.db$ID_Service == my_ID)} else {my_Row <- nrow(servicing.db) + 1}
   servicing.db[my_Row, ] <- dataRow
   
   dbWriteTable(connect_to_db(), name='servicing',value = servicing.db, overwrite = T, row.names = F)

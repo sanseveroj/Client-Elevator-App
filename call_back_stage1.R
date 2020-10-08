@@ -150,7 +150,7 @@ output$pageStub <- renderUI(
    align = "right", 
    height = "65%",
    width = "450"))))
- 
+
 observeEvent(input$submitMechRequest, ignoreInit = T, {
   if (session$userData$resumeFlag) {session$userData$my_ID <- session$userData$servicing.dt$ID_Service[1]} 
   else {session$userData$my_ID <- generate_id()}
@@ -160,9 +160,10 @@ observeEvent(input$submitMechRequest, ignoreInit = T, {
  session$userData$Type          <- 1
  session$userData$Description   <- "CB"
  session$userData$Caller        <- session$userData$users.dt$ID_User
- session$userData$Call_Placed   <- lubridate::ymd_hm(paste(Sys.Date(),input$inp_callBack,sep="-"))
+ session$userData$Call_Placed   <- str_trunc(input$inp_callBack, width = 8, side = "left", ellipsis = "")
  session$userData$Call_Reason   <- input$ClientDesc
  session$userData$Dev_Des       <- input$selDesignation
+ # print(session$userData$Call_Placed)
 if (is.null(input$OtherCR)){session$userData$OtherCR <- input$OtherCR} else { session$userData$OtherCR <- NA}
  # cat(paste(input$CallBack,
            # session$userData$Call_Return_Time))
@@ -192,7 +193,7 @@ observeEvent(input$saveMechRequest,{
     Call_Returned = NA,
     Arrival       = NA,
     Departure     = NA,
-    Date          = Sys.time(),
+    Date          = Sys.Date(),
     Incomplete    = 1,
     OtherCR       = input$OtherCR,
     OtherComp     = NA

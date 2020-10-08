@@ -57,7 +57,7 @@ my_string <- stringr::str_split(input$Incomplete, pattern = " - ")
 print(my_string)
 session$userData$servicing.dt <- session$userData$servicing.dt %>% 
   filter(Dev_Des == my_string[[1]][1] &
-           Date == my_string[[1]][2])
+           Date == str_trunc(my_string[[1]][2], width = 10, side = "right", ellipsis = ""))
 session$userData$resumeFlag <- T
 # servicing.dt %>% 
 #   filter(Dev_Des == my_string[[1]][1] &

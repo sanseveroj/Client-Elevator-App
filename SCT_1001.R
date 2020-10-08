@@ -13,6 +13,7 @@ library(RODBC)
 library(dbx)
 library(gmailr)
 library(stringr)
+library(shinyjs)
 #Global Variables ----
 site_pages <- tibble(name="login",sp=0)     # in terms of pages, it's the amount of user sp
 site_pages <- rbind(site_pages, tibble(name="preventative_maintenance",sp=0))     #    required to open the page.
@@ -61,7 +62,7 @@ generate_id <- function() {
 
 incompletes <- function(servicing.dt){
   unlist(lapply(1:nrow(servicing.dt), function(i){
-    paste(servicing.dt$Dev_Des[i], servicing.dt$Date[i], sep = " - ")
+    paste(servicing.dt$Dev_Des[i], paste(servicing.dt$Date[i], servicing.dt$Call_Placed[i]), sep = " - ")
     
   }))
 }
@@ -70,6 +71,8 @@ incompletes <- function(servicing.dt){
 #service call tracker ----
 ui <- fluidPage(theme = shinytheme('sandstone'),
  useShinyalert(),
+ actionButton('ContactBtn','Contact Us', style= 
+                'position: fixed; right: 95px;top: 5px;'),
  actionButton('logoutBtn','Logout', style= 
   'position: fixed; right: 10px;top: 5px;'),
  title="Servicing Client Tracking",
@@ -172,6 +175,19 @@ server <- function(input, output, session) {
   # killDbConnections()
   js$redirect("?login")
  })
+ observeEvent(input$ContactBtn, {
+   onContact <- T
+   source(here::here("Contact_Us.R"), local= T) 
+ })
+
+ 
+ # observeEvent(input$ContactBtn, {
+ #   actionButton('ContactBak','Back', style= 
+ #                  'position: fixed; right: 95px;top: 5px;')
+ #   shinyjs::hide(ContactBtn)
+ #   if ("Contact_Us.R") {shinyjs::show(ContactBak)}
+ #   
+ # })
  # additional ui for what's the same on all webpages
  output$uiStub <- renderUI(tagList(
   # fluidRow(
