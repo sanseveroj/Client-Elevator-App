@@ -55,15 +55,20 @@ value <- F
 observeEvent(input$resumeBtn,{value <- T 
 my_string <- stringr::str_split(input$Incomplete, pattern = " - ")
 print(my_string)
-session$userData$servicing.dt <- session$userData$servicing.dt %>% 
-  filter(Dev_Des == my_string[[1]][1] &
-           Date == str_trunc(my_string[[1]][2], width = 10, side = "right", ellipsis = ""))
+session$userData$servicing.dt <- session$userData$servicing.dt[my_string[[1]][1],]  
+  
+  # filter(Dev_Des == my_string[[1]][1] &
+  #          Date == str_trunc(my_string[[1]][2], width = 10, side = "right", ellipsis = "") &
+  #        
+  #        )
 session$userData$resumeFlag <- T
 # servicing.dt %>% 
 #   filter(Dev_Des == my_string[[1]][1] &
 #            Date == my_string[[1]][2] &
 #            Component == my_string[[1]][3])
 removeModal()
+print(session$userData$servicing.dt$Type)
+print(session$userData$servicing.dt$ID_Service)
 if (session$userData$servicing.dt$Type == 1)
 {source(here::here("call_back_stage1.R"),local=T)}
 else
@@ -109,7 +114,7 @@ observeEvent(input$login_btn,{
   
   if (!is.na(session$userData$servicing.dt$ID_Service[1]))
       {showModal(modalDialog( h3("You have an unsubmitted request. Would you like to resume your previous session?"), 
-                              fluidRow(selectInput("Incomplete", label = "Select from previous session", 
+                              fluidRow(selectInput("Incomplete", label = "Select from previous session", width = "400px",
                                                    choices = incompletes(servicing.dt = session$userData$servicing.dt))),
                          fluidRow(actionButton("resumeBtn", "Resume"),
                                     actionButton("newBtn", "Start new session"), align = "center"), footer = NULL))}

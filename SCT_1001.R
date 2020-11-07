@@ -60,9 +60,15 @@ generate_id <- function() {
   return(newID)
 }
 
+# whichCall <- function(servicing.dt, i)
+# {if (is.na(servicing.dt$Arrival[i])){return(servicing.dt$Call_Placed[i])}
+#   else if (is.na(servicing.dt$Departure[i]) & !is.na(servicing.dt$Arrival[i])) {return(servicing.dt$Arrival[i])}
+#   else {servicing.dt$Departure[i]}}
+
 incompletes <- function(servicing.dt){
   unlist(lapply(1:nrow(servicing.dt), function(i){
-    paste(servicing.dt$Dev_Des[i], paste(servicing.dt$Date[i], servicing.dt$Call_Placed[i]), sep = " - ")
+    paste(i, paste("Elevator: ", sep = "", servicing.dt$Dev_Des[i]), paste(servicing.dt$Date[i], servicing.dt$Call_Placed[i], paste(servicing.dt$Description[i]
+                                                                                                                    , sep = " - "), sep = " - "), sep = " - ")
     
   }))
 }
