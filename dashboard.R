@@ -68,13 +68,14 @@ names(fullService)[1] <- "Month"
 
 # UI ----
 output$pageStub <- renderUI(fluidPage(
+  style = "max-height: 100vh; overflow-y: auto;" ,
   tags$style(type="text/css",
              ".shiny-output-error { visibility: hidden; }",
              ".shiny-output-error:before { visibility: hidden; }"
   ),
   tags$head(tags$script('
                         var dimension = [0, 0];
-                        $(document).on("shiny:connected", function(e) {
+                        $(document).on("shiny:sessioninitialized", function(e) {
                         dimension[0] = window.innerWidth;
                         dimension[1] = window.innerHeight;
                         Shiny.onInputChange("dimension", dimension);
@@ -83,20 +84,8 @@ output$pageStub <- renderUI(fluidPage(
                         dimension[0] = window.innerWidth;
                         dimension[1] = window.innerHeight;
                         Shiny.onInputChange("dimension", dimension);
-                        });
-                        '),tags$script('
-                        var dimension = [0, 0];
-                        $(document).on("shiny:connected", function(e) {
-                        dimension[0] = window.innerWidth;
-                        dimension[1] = window.innerHeight;
-                        Shiny.onLoad("dimension", dimension);
-                        });
-                        $(window).resize(function(e) {
-                        dimension[0] = window.innerWidth;
-                        dimension[1] = window.innerHeight;
-                        Shiny.onLoad("dimension", dimension);
-                        });
-                        ')),
+                        });')
+                       ),
  if(loggedIn) {actionButton('logoutBtn','Logout', style= 
                              'position: fixed; right: 10px;top: 5px;')},
   title = 'BOCA',
@@ -124,15 +113,16 @@ output$pageStub <- renderUI(fluidPage(
     
     tabPanel('Call Back',
              br(),
-            flowLayout(box(width = 6,plotlyOutput("Calls"))),
-            flowLayout(column(width = 6, plotlyOutput("Components"),
-                tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -125px;}")), 
-                column(width = 6, offset = 12, plotlyOutput("Entrapments")),
-                     tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 105px;}")))
+            fluidRow(column(width = 12,plotlyOutput("Calls"))),
+            fluidRow(column(width = 6, plotlyOutput("Entrapments")),
+                     # tags$style(type='text/css', "#Entrapments {margin-top: 25px;margin-left: 105px;}"), 
+                     column(width = 6, plotlyOutput("Components"),
+                # tags$style(type='text/css', "#Components {margin-top: 25px; margin-left: -125px;}")
+                )))
     ,
     tabPanel('Device Designation',
              br(),
-             flowLayout(box(width = 12, plotlyOutput("rEntrapmentsElev")))
+             fluidRow(width = 12, plotlyOutput("rEntrapmentsElev"))
              )
                   
                 
@@ -143,6 +133,8 @@ output$pageStub <- renderUI(fluidPage(
  )
 )
 )
+
+
 # Server ----
 #Prev Maintenance Plots ----
 rServicing <- reactive({
@@ -164,14 +156,25 @@ rServicing <- reactive({
     mutate(PM.MissHrs = PM.ReqHrs - PM.PerfHrs)
     }
  })
-
-observeEvent(input$dimension,{
+SiteHeight <- ifelse(is.null(input$dimension[2]), 1080, ifelse(abs(SiteHeight - input$dimension[2]) < 300,SiteHeight,input$dimension[2]))
+SiteWidth <- ifelse(is.null(input$dimension[1]), 1920, ifelse(abs(SiteWidth - input$dimension[1]) < 20,SiteWidth,input$dimension[1]))
+# observeEvent(input$dimension,{
   output$Pmaint <- renderPlotly({
+    SiteHeight <- ifelse(is.null(input$dimension[2]), 1080, ifelse(abs(SiteHeight - input$dimension[2]) < 300,SiteHeight,input$dimension[2]))
+    SiteWidth <- ifelse(is.null(input$dimension[1]), 1920, ifelse(abs(SiteWidth - input$dimension[1]) < 20,SiteWidth,input$dimension[1]))
   if(input$Address== "All" & input$Month== "All") {
+
+    print(input$dimension[1])
+    print(input$dimension[2])
+    print("test here")
+    print(SiteWidth)
+    print(SiteHeight)
+    
    rServicing() %>%
     # temp %>% 
-    plot_ly(width = 0.60*as.numeric(input$dimension[1]), 
-            height = 0.37*as.numeric(input$dimension[2]),
+    plot_ly(
+      # width = 0.70*as.numeric(SiteWidth), 
+            # height = 0.37*as.numeric(SiteHeight),
             x=~Month, 
             y= ~PM.ReqHrs,
             type= 'scatter', 
@@ -189,8 +192,8 @@ observeEvent(input$dimension,{
    } else if (input$Address == "All") {
     rServicing() %>%
      plot_ly(type = 'bar',
-             width = (0.60*as.numeric(input$dimension[1])),
-             height = 0.37*as.numeric(input$dimension[2]),
+             # width = (0.60*as.numeric(SiteWidth)),
+             # height = 0.37*as.numeric(SiteHeight),
              y = ~Address,
              x = ~PM.ReqHrs,
              name = 'Required Hours' 
@@ -206,8 +209,9 @@ observeEvent(input$dimension,{
           )
    }else if (input$Month == "All") {
     rServicing() %>%
-     plot_ly(width = (0.60*as.numeric(input$dimension[1])),
-             height = 0.37*as.numeric(input$dimension[2]),
+     plot_ly(
+       # width = (0.60*as.numeric(SiteWidth)),
+             # height = 0.37*as.numeric(SiteHeight),
             x=~Month, 
              y= ~PM.ReqHrs,
              type= 'scatter', 
@@ -224,8 +228,9 @@ observeEvent(input$dimension,{
    }
   else {
    rServicing() %>%
-   plot_ly(width = (0.32*as.numeric(input$dimension[1])), 
-           height = 0.32*as.numeric(input$dimension[2]),
+   plot_ly(
+     # width = (0.32*as.numeric(SiteWidth)), 
+           # height = 0.32*as.numeric(SiteHeight),
      labels = c('Recorded Hours', 'Required Hours'),values = c(~PM.PerfHrs, ~PM.MissHrs)) %>%
     add_pie(hole = 0.5) %>%
     layout(title =~Address,  showlegend = T,
@@ -236,7 +241,7 @@ observeEvent(input$dimension,{
   
    
  })
-})
+# })
 #Preventative Maintenance Table ----
 output$servicing <- DT::renderDataTable(
  DT::datatable(rServicing(),
@@ -391,19 +396,26 @@ output$servicing <- DT::renderDataTable(
  
  
  output$Components <- renderPlotly({
+   SiteHeight <- ifelse(is.null(input$dimension[2]), 1080, ifelse(abs(SiteHeight - input$dimension[2]) < 300,SiteHeight,input$dimension[2]))
+   SiteWidth <- ifelse(is.null(input$dimension[1]), 1920, ifelse(abs(SiteWidth - input$dimension[1]) < 20,SiteWidth,input$dimension[1]))
   plot_ly(
    data = rComponents(),
    type = 'pie',
    hole = 0.35,
-   width = 0.35*as.numeric(input$dimension[1]), 
-   height = 0.45*as.numeric(input$dimension[2]),
+   textposition = 'inside',
+   textinfo = 'label+percent',
+   # width = 0.35*as.numeric(SiteWidth), 
+   # height = 0.45*as.numeric(SiteHeight),
    labels = ~Component,
    textinfo = "none",
    values = ~compCount
-   )%>% layout(title = 'Components', showlegend = TRUE)
+   
+   )%>% layout(title = 'Components', showlegend = FALSE)
  })
  
  output$Calls <- renderPlotly({
+   SiteHeight <- ifelse(is.null(input$dimension[2]), 1080, ifelse(abs(SiteHeight - input$dimension[2]) < 300,SiteHeight,input$dimension[2]))
+   SiteWidth <- ifelse(is.null(input$dimension[1]), 1920, ifelse(abs(SiteWidth - input$dimension[1]) < 20,SiteWidth,input$dimension[1]))
    temp <- late_month()
    
    validate(
@@ -413,8 +425,8 @@ output$servicing <- DT::renderDataTable(
      temp %>% 
        plot_ly(
          type = 'bar',
-         width = 0.8*as.numeric(input$dimension[1]),
-         height = 0.35*as.numeric(input$dimension[2]),
+         # width = 0.8*as.numeric(SiteWidth),
+         # height = 0.35*as.numeric(SiteHeight),
          x = ~`0`,
          y = ~Address,
          name = 'On-Time' 
@@ -431,8 +443,8 @@ output$servicing <- DT::renderDataTable(
      temp %>% 
        plot_ly(
          type = 'bar',
-         width = 0.8*as.numeric(input$dimension[1]),
-         height = 0.35*as.numeric(input$dimension[2]),
+         # width = 0.8*as.numeric(SiteWidth),
+         # height = 0.35*as.numeric(SiteHeight),
          x = ~Month,
          y = ~`0`,
          name = 'On-Time' 
@@ -449,6 +461,8 @@ output$servicing <- DT::renderDataTable(
    }
  })
  output$Entrapments <- renderPlotly({
+   SiteHeight <- ifelse(is.null(input$dimension[2]), 1080, ifelse(abs(SiteHeight - input$dimension[2]) < 300,SiteHeight,input$dimension[2]))
+   SiteWidth <- ifelse(is.null(input$dimension[1]), 1920, ifelse(abs(SiteWidth - input$dimension[1]) < 20,SiteWidth,input$dimension[1]))
   temp <- rEntrapments()
 
   validate(
@@ -458,15 +472,15 @@ output$servicing <- DT::renderDataTable(
     temp %>% 
       plot_ly(
         type = 'bar',
-        width = 0.55*as.numeric(input$dimension[1]),
-        height = 0.35*as.numeric(input$dimension[2]),
+        # width = 0.55*as.numeric(SiteWidth),
+        # height = 0.35*as.numeric(SiteHeight),
         x = ~Entrapments,
         y = ~Address,
         name = 'Entrapments' 
       ) %>%
       add_trace(x= ~nonEntrapment, name = 'Other Shutdowns') %>%
       layout(
-        title = 'Entrapments and Other Shutdowns',
+        title = 'Entrapments and Shutdowns 2020 YTD',
         yaxis = list(title = 'Address'),
         xaxis = list(title = 'Calls'),
         barmode = 'stack',
@@ -478,15 +492,15 @@ output$servicing <- DT::renderDataTable(
   }else{temp %>%
    plot_ly(
      type = 'bar',
-     width = 0.40*as.numeric(input$dimension[1]),
-     height = 0.45*as.numeric(input$dimension[2]),
+     # width = 0.40*as.numeric(SiteWidth),
+     # height = 0.40*as.numeric(SiteHeight),
      x = ~Month,
      y= ~Entrapments,
      name = 'Entrapments'
    ) %>%
   add_bars(y = ~nonEntrapment, name = 'Other Shutdowns', x = ~Month) %>%
      layout(
-       title = 'Entrapments and Other Shutdowns 2020 YTD',
+       title = 'Entrapments and Shutdowns 2020 YTD',
        yaxis = list(title = 'Event'),
        xaxis = list(title = 'Month'),
        barmode = 'stack',
@@ -533,6 +547,7 @@ output$servicing <- DT::renderDataTable(
    
      })
 output$rEntrapmentsElev <- renderPlotly({
+
  elevplot <- rEntrapmentsElev()
 
 
@@ -540,8 +555,8 @@ if (input$Month == "All" & input$Address != "All") {
   elevplot %>%
      plot_ly(
        type = 'bar',
-       width = 0.40*as.numeric(input$dimension[1]),
-       height = 0.45*as.numeric(input$dimension[2]),
+       # width = 0.40*as.numeric(SiteWidth),
+       # height = 0.45*as.numeric(SiteHeight),
        x = ~Dev_Des,
        y= ~Entrapment,
        name = 'Entrapments'
@@ -551,6 +566,7 @@ if (input$Month == "All" & input$Address != "All") {
        title = 'Shutdowns and Entrapments 2020 YTD',
        yaxis = list(title = 'Event'),
        xaxis = list(title = 'Elevator'),
+      
        barmode = 'stack',
        colorway = c('#FF0000','#FFFF00'),
        showlegend = TRUE
@@ -560,8 +576,8 @@ if (input$Month == "All" & input$Address != "All") {
    elevplot %>%
      plot_ly(
        type = 'bar',
-       width = 0.40*as.numeric(input$dimension[1]),
-       height = 0.45*as.numeric(input$dimension[2]),
+       # width = 0.40*as.numeric(SiteWidth),
+       # height = 0.45*as.numeric(SiteHeight),
        x = ~Dev_Des,
        y= ~Entrapment,
        name = 'Entrapments'
