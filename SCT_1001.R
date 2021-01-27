@@ -33,11 +33,11 @@ killDbConnections <- function () {
 }
 connect_to_db <- function(){
   killDbConnections()
-  host <- "boca2.czufsn0x0chu.us-east-2.rds.amazonaws.com"
-  port <- 3306
-  dbname <- "BOCA_2"
-  user <- "BOCAKYLE"
-  password <- "Rocktheboat867"
+  host <- 
+  port <- 
+  dbname <- 
+  user <- ""
+  password <- ""
   
   # killDbConnections()
   cn <- dbConnect(drv = RMySQL::MySQL(), username = user, password= password, host = host, dbname = dbname, port = port)
