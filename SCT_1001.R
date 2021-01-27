@@ -27,11 +27,11 @@ killDbConnections <- function () {
 }
 
 #Database Variables
-host <- "boca-2.cg55foopexne.us-east-1.rds.amazonaws.com"
-port <- 3306
-dbname <- "BOCA_2"
-user <- "JoeSans"
-password <- "Joe5933547"
+host <- ""
+port <- 
+dbname <- ""
+user <- ""
+password <- ""
 
 # killDbConnections()
 my_db <- src_mysql(dbname = dbname,host = host, port = port, user=user,password = password )
